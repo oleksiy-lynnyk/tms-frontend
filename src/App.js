@@ -1,23 +1,33 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import { getAllSuites } from './api/testSuiteApi';
+import TestSuiteSidebar from './components/suites/TestSuiteSidebar';
+import SuiteCaseView from './components/suites/SuiteCaseView';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
+  const [suites, setSuites] = useState([]);
+  const [selectedSuite, setSelectedSuite] = useState(null);
+
+  const loadSuites = async () => {
+    const res = await getAllSuites();
+    setSuites(res.data);
+    if (!selectedSuite && res.data.length) {
+      setSelectedSuite(res.data[0]);
+    }
+  };
+
+  useEffect(() => {
+    loadSuites();
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="d-flex" style={{ height: '100vh' }}>
+      <TestSuiteSidebar
+        suites={suites}
+        onSelect={setSelectedSuite}
+        selectedId={selectedSuite?.id}
+      />
+      <SuiteCaseView suite={selectedSuite} />
     </div>
   );
 }
