@@ -1,35 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { getAllSuites } from './api/testSuiteApi';
-import TestSuiteSidebar from './components/suites/TestSuiteSidebar';
-import SuiteCaseView from './components/suites/SuiteCaseView';
+import React, { useState } from 'react';
+import TestSuiteSidebar from './components/testSuite/TestSuiteSidebar';
+import TestCaseView from './components/testCase/TestCaseView';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './styles/global.css';
 
-function App() {
-  const [suites, setSuites] = useState([]);
-  const [selectedSuite, setSelectedSuite] = useState(null);
+const App = () => {
+    const [selectedSuite, setSelectedSuite] = useState(null);
 
-  const loadSuites = async () => {
-    const res = await getAllSuites();
-    setSuites(res.data);
-    if (!selectedSuite && res.data.length) {
-      setSelectedSuite(res.data[0]);
-    }
-  };
-
-  useEffect(() => {
-    loadSuites();
-  }, []);
-
-  return (
-    <div className="d-flex" style={{ height: '100vh' }}>
-      <TestSuiteSidebar
-        suites={suites}
-        onSelect={setSelectedSuite}
-        selectedId={selectedSuite?.id}
-      />
-      <SuiteCaseView suite={selectedSuite} />
-    </div>
-  );
-}
+    return (
+        <div className="app-container">
+            <div className="sidebar-container">
+                <TestSuiteSidebar
+                    selected={selectedSuite}
+                    onSelectSuite={setSelectedSuite}
+                />
+            </div>
+            <div className="content-container">
+                <TestCaseView suite={selectedSuite} />
+            </div>
+        </div>
+    );
+};
 
 export default App;
