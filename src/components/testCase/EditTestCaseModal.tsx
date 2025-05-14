@@ -1,8 +1,7 @@
-// src/components/testCase/EditTestCaseModal.js
-
-import React, { useEffect, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
 import { updateTestCase } from '../../api/testCaseApi';
+import type { TestCase } from './types';
 
 import {
     priorityOptions,
@@ -14,54 +13,40 @@ import {
     componentOptions,
 } from '../../constants/testcaseOptions';
 
-const EditTestCaseModal = ({ show, onClose, testCase, onSave }) => {
-    // локальний стейт для форми
-    const [form, setForm] = useState({
-        title: '',
-        preconditions: '',
-        description: '',
-        steps: '',
-        expectedResult: '',
-        priority: '',
-        tags: '',
-        state: '',
-        owner: '',
-        type: '',
-        automationStatus: '',
-        component: '',
-        useCase: '',
-        requirement: '',
-    });
+export interface EditTestCaseModalProps {
+    show: boolean;
+    onClose: () => void;
+    onSave: () => void;
+    testCase: TestCase | null;
+    suiteId: number;
+}
 
-    // при відкритті модалки заповнюємо форму
+const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
+                                                           show,
+                                                           onClose,
+                                                           onSave,
+                                                           testCase,
+                                                           suiteId,
+                                                       }) => {
+    const [form, setForm] = useState<Partial<TestCase>>({});
+
     useEffect(() => {
         if (testCase) {
-            setForm({
-                title: testCase.title || '',
-                preconditions: testCase.preconditions || '',
-                description: testCase.description || '',
-                steps: testCase.steps || '',
-                expectedResult: testCase.expectedResult || '',
-                priority: testCase.priority || '',
-                tags: testCase.tags || '',
-                state: testCase.state || '',
-                owner: testCase.owner || '',
-                type: testCase.type || '',
-                automationStatus: testCase.automationStatus || '',
-                component: testCase.component || '',
-                useCase: testCase.useCase || '',
-                requirement: testCase.requirement || '',
-            });
+            setForm({ ...testCase });
         }
     }, [testCase]);
 
-    const handleChange = field => e => {
-        setForm(f => ({ ...f, [field]: e.target.value }));
-    };
+    const handleChange =
+        (field: keyof TestCase) =>
+            (e: React.ChangeEvent<
+                HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+            >) => {
+                setForm(prev => ({ ...prev, [field]: e.target.value }));
+            };
 
     const handleSubmit = async () => {
-        if (!testCase?.id) return;
-        await updateTestCase(testCase.id, form);
+        if (!testCase) return;
+        await updateTestCase(testCase.id, { ...form, suiteId });
         onSave();
         onClose();
     };
@@ -69,172 +54,156 @@ const EditTestCaseModal = ({ show, onClose, testCase, onSave }) => {
     return (
         <Modal show={show} onHide={onClose} size="xl" backdrop="static">
             <Modal.Header closeButton>
-                <Modal.Title>
-                    Edit Test Case {testCase?.id ? `TC-${testCase.id}` : ''}
-                </Modal.Title>
+                <Modal.Title>Edit Test Case {testCase ? `TC-${testCase.id}` : ''}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <Form>
                     <Row>
-                        {/* Ліва колонка */}
                         <Col md={8}>
+                            {/* Title */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Title</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    value={form.title}
+                                    value={form.title ?? ''}
                                     onChange={handleChange('title')}
                                 />
                             </Form.Group>
-
+                            {/* Preconditions */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Preconditions</Form.Label>
                                 <Form.Control
                                     as="textarea"
                                     rows={2}
-                                    value={form.preconditions}
+                                    value={form.preconditions ?? ''}
                                     onChange={handleChange('preconditions')}
                                 />
                             </Form.Group>
-
+                            {/* Description */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Description</Form.Label>
                                 <Form.Control
                                     as="textarea"
                                     rows={2}
-                                    value={form.description}
+                                    value={form.description ?? ''}
                                     onChange={handleChange('description')}
                                 />
                             </Form.Group>
-
+                            {/* Steps */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Test Steps</Form.Label>
                                 <Form.Control
                                     as="textarea"
                                     rows={3}
-                                    value={form.steps}
+                                    value={form.steps ?? ''}
                                     onChange={handleChange('steps')}
                                 />
                             </Form.Group>
-
+                            {/* Expected */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Expected Result</Form.Label>
                                 <Form.Control
                                     as="textarea"
                                     rows={2}
-                                    value={form.expectedResult}
+                                    value={form.expectedResult ?? ''}
                                     onChange={handleChange('expectedResult')}
                                 />
                             </Form.Group>
                         </Col>
-
-                        {/* Права колонка */}
                         <Col md={4}>
+                            {/* Priority */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Priority</Form.Label>
                                 <Form.Select
-                                    value={form.priority}
+                                    value={form.priority ?? ''}
                                     onChange={handleChange('priority')}
                                 >
                                     <option value="">Select priority</option>
                                     {priorityOptions.map(o => (
-                                        <option key={o} value={o}>{o}</option>
+                                        <option key={o} value={o}>
+                                            {o}
+                                        </option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-
+                            {/* Tags */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Tags</Form.Label>
-                                <Form.Select
-                                    value={form.tags}
-                                    onChange={handleChange('tags')}
-                                >
+                                <Form.Select value={form.tags ?? ''} onChange={handleChange('tags')}>
                                     <option value="">Select tags</option>
                                     {tagOptions.map(o => (
-                                        <option key={o} value={o}>{o}</option>
+                                        <option key={o} value={o}>
+                                            {o}
+                                        </option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-
+                            {/* State */}
                             <Form.Group className="mb-3">
                                 <Form.Label>State</Form.Label>
-                                <Form.Select
-                                    value={form.state}
-                                    onChange={handleChange('state')}
-                                >
+                                <Form.Select value={form.state ?? ''} onChange={handleChange('state')}>
                                     <option value="">Select state</option>
                                     {stateOptions.map(o => (
-                                        <option key={o} value={o}>{o}</option>
+                                        <option key={o} value={o}>
+                                            {o}
+                                        </option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-
-                            <Form.Group className="mb-3">
-                                <Form.Label>Owner</Form.Label>
-                                <Form.Select
-                                    value={form.owner}
-                                    onChange={handleChange('owner')}
-                                >
-                                    <option value="">Select owner</option>
-                                    {ownerOptions.map(o => (
-                                        <option key={o} value={o}>{o}</option>
-                                    ))}
-                                </Form.Select>
-                            </Form.Group>
-
+                            {/* Type */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Type</Form.Label>
-                                <Form.Select
-                                    value={form.type}
-                                    onChange={handleChange('type')}
-                                >
+                                <Form.Select value={form.type ?? ''} onChange={handleChange('type')}>
                                     <option value="">Select type</option>
                                     {typeOptions.map(o => (
-                                        <option key={o} value={o}>{o}</option>
+                                        <option key={o} value={o}>
+                                            {o}
+                                        </option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-
+                            {/* Automation */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Automation Status</Form.Label>
                                 <Form.Select
-                                    value={form.automationStatus}
+                                    value={form.automationStatus ?? ''}
                                     onChange={handleChange('automationStatus')}
                                 >
                                     <option value="">Select automation status</option>
                                     {automationOptions.map(o => (
-                                        <option key={o} value={o}>{o}</option>
+                                        <option key={o} value={o}>
+                                            {o}
+                                        </option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-
+                            {/* Component */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Component</Form.Label>
-                                <Form.Select
-                                    value={form.component}
-                                    onChange={handleChange('component')}
-                                >
+                                <Form.Select value={form.component ?? ''} onChange={handleChange('component')}>
                                     <option value="">Select component</option>
                                     {componentOptions.map(o => (
-                                        <option key={o} value={o}>{o}</option>
+                                        <option key={o} value={o}>
+                                            {o}
+                                        </option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-
+                            {/* Use Case */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Use Case</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    value={form.useCase}
+                                    value={form.useCase ?? ''}
                                     onChange={handleChange('useCase')}
                                 />
                             </Form.Group>
-
+                            {/* Requirement */}
                             <Form.Group className="mb-3">
                                 <Form.Label>Requirement</Form.Label>
                                 <Form.Control
                                     type="text"
-                                    value={form.requirement}
+                                    value={form.requirement ?? ''}
                                     onChange={handleChange('requirement')}
                                 />
                             </Form.Group>
