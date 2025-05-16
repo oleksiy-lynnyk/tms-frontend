@@ -1,139 +1,125 @@
+// src/components/testCase/TestCaseHeader.tsx
 import React, { FC } from 'react'
-import {
-    Row,
-    Col,
-    InputGroup,
-    Form,
-    Button,
-    DropdownButton,
-} from 'react-bootstrap'
-import type { TestCase, ColumnKey } from './types'
+import { InputGroup, Form, Button, Dropdown } from 'react-bootstrap'
+import type { ColumnKey } from './types'
 
-export interface TestCaseHeaderProps {
+interface Props {
     suiteName?: string
     search: string
-    onSearch: (value: string) => void
+    onSearch: (s: string) => void
     onAdd: () => void
 
     anySelected: boolean
-    allOnPageSelected: boolean
-    onSelectAll: (checked: boolean) => void
     onBulkEdit: () => void
+    onBulkCopy: () => void
+    onBulkMove: () => void
+    onBulkDelete: () => void
 
     visibleColumns: Record<ColumnKey, boolean>
-    onToggleColumn: (key: ColumnKey) => void
-
-    onSort: (field: keyof TestCase) => void
-    sortField: keyof TestCase
-    sortDir: 'asc' | 'desc'
+    onToggleColumn: (k: ColumnKey) => void
 }
 
-const COLUMN_DEFS: { key: ColumnKey; label: string }[] = [
-    { key: 'select', label: '' },
-    { key: 'id', label: 'ID' },
-    { key: 'title', label: 'Title' },
-    { key: 'priority', label: 'Priority' },
-    { key: 'owner', label: 'Owner' },
-    { key: 'tags', label: 'Tags' },
-    { key: 'state', label: 'State' },
-    { key: 'type', label: 'Type' },
-    { key: 'automationStatus', label: 'Automation' },
-    { key: 'component', label: 'Component' },
-    { key: 'requirement', label: 'Requirement' },
-]
-
-const TestCaseHeader: FC<TestCaseHeaderProps> = ({
-                                                     suiteName,
-                                                     search,
-                                                     onSearch,
-                                                     onAdd,
-                                                     anySelected,
-                                                     allOnPageSelected,
-                                                     onSelectAll,
-                                                     onBulkEdit,
-                                                     visibleColumns,
-                                                     onToggleColumn,
-                                                     onSort,
-                                                     sortField,
-                                                     sortDir,
-                                                 }) => {
-    // теперь принимает ColumnKey
-    const renderArrow = (col: ColumnKey) => {
-        if (col === 'select') return ''
-        return col === sortField
-            ? sortDir === 'asc'
-                ? ' ↑'
-                : ' ↓'
-            : ''
-    }
-
+const TestCaseHeader: FC<Props> = ({
+                                       suiteName,
+                                       search,
+                                       onSearch,
+                                       onAdd,
+                                       anySelected,
+                                       onBulkEdit,
+                                       onBulkCopy,
+                                       onBulkMove,
+                                       onBulkDelete,
+                                       visibleColumns,
+                                       onToggleColumn,
+                                   }) => {
     return (
-        <Row
-            className="testcase-header sticky-top bg-white align-items-center mb-3"
+        <div
+            className="testcase-header sticky-top bg-white d-flex align-items-center px-3 py-2"
             style={{ zIndex: 100, top: 0 }}
         >
-            <Col><h5 className="m-0">{suiteName ?? 'Select a suite'}</h5></Col>
+            {/* Suite title */}
+            <h5 className="m-0 me-3 flex-shrink-0">
+                {suiteName ?? 'Select a suite'}
+            </h5>
 
-            <Col md="4">
-                <InputGroup>
-                    <Form.Control
-                        placeholder="Search test cases..."
-                        value={search}
-                        onChange={e => onSearch(e.target.value)}
-                    />
-                    {search && (
-                        <Button variant="outline-secondary" onClick={() => onSearch('')}>
-                            ×
-                        </Button>
-                    )}
-                </InputGroup>
-            </Col>
-
-            <Col md="auto">
-                <Button
-                    variant="outline-primary"
-                    onClick={onBulkEdit}
-                    disabled={!anySelected}
-                >
-                    Bulk Edit
-                </Button>
-            </Col>
-
-            {visibleColumns.select && (
-                <Col md="auto">
-                    <Form.Check
-                        type="checkbox"
-                        checked={allOnPageSelected}
-                        onChange={e => onSelectAll(e.target.checked)}
-                        label=""
-                    />
-                </Col>
+            {/* Bulk actions placed immediately after title */}
+            {anySelected && (
+                <div className="d-flex align-items-center me-3" style={{ gap: '0.5rem' }}>
+                    <Button size="sm" variant="outline-primary" onClick={onBulkEdit}>
+                        Edit
+                    </Button>
+                    <Button size="sm" variant="outline-secondary" onClick={onBulkCopy}>
+                        Copy
+                    </Button>
+                    <Button size="sm" variant="outline-secondary" onClick={onBulkMove}>
+                        Move
+                    </Button>
+                    <Button size="sm" variant="outline-danger" onClick={onBulkDelete}>
+                        Delete
+                    </Button>
+                </div>
             )}
 
-            <Col md="auto">
-                <Button onClick={onAdd}>Add Test Case</Button>
-            </Col>
-
-            <Col md="auto">
-                <DropdownButton
-                    id="dropdown-columns"
-                    title="Manage Columns"
-                    variant="outline-secondary"
-                >
-                    {COLUMN_DEFS.filter(c => c.key !== 'select').map(c => (
-                        <Form.Check
-                            key={c.key}
-                            type="checkbox"
-                            id={`col-${c.key}`}
-                            className="dropdown-item"
-                            label={c.label + renderArrow(c.key)}
-                            checked={!!visibleColumns[c.key]}
-                            onChange={() => onToggleColumn(c.key)}
+            {/* Right-aligned group: search, add, manage columns */}
+            <div className="d-flex align-items-center ms-auto" style={{ gap: '0.75rem' }}>
+                {/* Search (width halved) */}
+                <div style={{ flexShrink: 0, width: '200px' }}>
+                    <InputGroup>
+                        <Form.Control
+                            placeholder="Search test cases..."
+                            value={search}
+                            onChange={e => onSearch(e.target.value)}
                         />
-                    ))}
-                </DropdownButton>
-            </Col>
-        </Row>
+                        {search && (
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                onClick={() => onSearch('')}
+                            >
+                                ×
+                            </Button>
+                        )}
+                    </InputGroup>
+                </div>
+
+                {/* Add Test Case */}
+                <Button size="sm" variant="outline-primary" onClick={onAdd}>
+                    Add Test Case
+                </Button>
+
+                {/* Manage Columns */}
+                <Dropdown>
+                    <Dropdown.Toggle size="sm" variant="outline-primary" id="dropdown-columns">
+                        Manage Columns
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu
+                        style={{ maxHeight: 250, overflowY: 'auto', padding: '0.5rem', fontSize: '14px' }}
+                    >
+                        {Object.entries(visibleColumns).map(([key, visible]) => (
+                            <Form.Check
+                                as="label"
+                                key={key}
+                                htmlFor={`col-${key}`}
+                                className="d-flex align-items-center mb-1"
+                                style={{ cursor: 'pointer', fontSize: '14px' }}
+                            >
+                                <Form.Check.Input
+                                    type="checkbox"
+                                    id={`col-${key}`}
+                                    checked={visible}
+                                    onChange={() => onToggleColumn(key as ColumnKey)}
+                                />
+                                <Form.Check.Label className="ms-2 mb-0" style={{ fontSize: '14px' }}>
+                                    {key === 'automationStatus'
+                                        ? 'Automation'
+                                        : key.charAt(0).toUpperCase() + key.slice(1)}
+                                </Form.Check.Label>
+                            </Form.Check>
+                        ))}
+                    </Dropdown.Menu>
+                </Dropdown>
+            </div>
+        </div>
     )
 }
 

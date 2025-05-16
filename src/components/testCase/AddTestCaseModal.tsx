@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
-import { createTestCase } from '../../api/testCaseApi';
-import type { TestCase } from './types';
+// src/components/testCase/AddTestCaseModal.tsx
+import React, { useState, useEffect } from 'react'
+import { Modal, Button, Form, Row, Col } from 'react-bootstrap'
+import CreatableTagSelect, { Option } from '../common/CreatableTagSelect'
+import { createTestCase } from '../../api/testCaseApi'
+import type { TestCase } from './types'
 
 import {
     priorityOptions,
@@ -11,21 +13,16 @@ import {
     typeOptions,
     automationOptions,
     componentOptions,
-} from '../../constants/testcaseOptions';
+} from '../../constants/testcaseOptions'
 
-export interface AddTestCaseModalProps {
-    show: boolean;
-    onClose: () => void;
-    suiteId: number;
-    onSave: () => void;
+interface AddTestCaseModalProps {
+    show: boolean
+    onClose: () => void
+    suiteId: number
+    onSave: () => Promise<void>
 }
 
-const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
-                                                               show,
-                                                               onClose,
-                                                               suiteId,
-                                                               onSave,
-                                                           }) => {
+const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({ show, onClose, suiteId, onSave }) => {
     const [form, setForm] = useState<Partial<TestCase>>({
         title: '',
         preconditions: '',
@@ -33,6 +30,7 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
         steps: '',
         expectedResult: '',
         priority: '',
+        owner: '',
         tags: '',
         state: '',
         type: '',
@@ -40,20 +38,32 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
         component: '',
         useCase: '',
         requirement: '',
-    });
+    })
+    const [tagValues, setTagValues] = useState<Option[]>([])
 
-    const handleChange =
-        (field: keyof typeof form) =>
-            (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-                setForm(prev => ({ ...prev, [field]: e.target.value }));
-            };
+    useEffect(() => {
+        if (!show) {
+            setForm({
+                title: '', preconditions: '', description: '', steps: '', expectedResult: '',
+                priority: '', owner: '', tags: '', state: '', type: '', automationStatus: '', component: '', useCase: '', requirement: ''
+            })
+            setTagValues([])
+        }
+    }, [show])
 
-    const handleSubmit = async () => {
-        if (!form.title?.trim()) return;
-        await createTestCase({ ...form, suiteId });
-        onSave();
-        onClose();
-    };
+    const handleChange = (field: keyof typeof form) =>
+        (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+            setForm(prev => ({ ...prev, [field]: e.target.value }))
+        }
+
+    const handleSave = async () => {
+        if (!form.title?.trim()) return
+        const updated: Partial<TestCase> = { ...form }
+        if (tagValues.length) updated.tags = tagValues.map(o => o.value).join(',')
+        await createTestCase({ ...updated, suiteId } as TestCase)
+        await onSave()
+        onClose()
+    }
 
     return (
         <Modal show={show} onHide={onClose} size="xl" backdrop="static">
@@ -64,8 +74,8 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                 <Form>
                     <Row>
                         <Col md={8}>
-                            {/* Title */}
-                            <Form.Group className="mb-3">
+                            {/* Left fields: Title, Preconditions, Description, Steps, ExpectedResult */}
+                            <Form.Group className="mb-3" controlId="add-title">
                                 <Form.Label>Title</Form.Label>
                                 <Form.Control
                                     type="text"
@@ -74,8 +84,7 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                     placeholder="Enter title"
                                 />
                             </Form.Group>
-                            {/* Preconditions */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="add-preconditions">
                                 <Form.Label>Preconditions</Form.Label>
                                 <Form.Control
                                     as="textarea"
@@ -84,8 +93,7 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                     onChange={handleChange('preconditions')}
                                 />
                             </Form.Group>
-                            {/* Description */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="add-description">
                                 <Form.Label>Description</Form.Label>
                                 <Form.Control
                                     as="textarea"
@@ -94,8 +102,7 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                     onChange={handleChange('description')}
                                 />
                             </Form.Group>
-                            {/* Steps */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="add-steps">
                                 <Form.Label>Test Steps</Form.Label>
                                 <Form.Control
                                     as="textarea"
@@ -104,8 +111,7 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                     onChange={handleChange('steps')}
                                 />
                             </Form.Group>
-                            {/* Expected */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="add-expectedResult">
                                 <Form.Label>Expected Result</Form.Label>
                                 <Form.Control
                                     as="textarea"
@@ -115,9 +121,10 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                 />
                             </Form.Group>
                         </Col>
+
                         <Col md={4}>
-                            {/* Priority */}
-                            <Form.Group className="mb-3">
+                            {/* Right fields: Priority, Owner, Tags, State, Type, Automation, Component, Use Case, Requirement */}
+                            <Form.Group className="mb-3" controlId="add-priority">
                                 <Form.Label>Priority</Form.Label>
                                 <Form.Select
                                     value={form.priority}
@@ -125,29 +132,30 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                 >
                                     <option value="">Select priority</option>
                                     {priorityOptions.map(o => (
-                                        <option key={o} value={o}>
-                                            {o}
-                                        </option>
+                                        <option key={o} value={o}>{o}</option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-                            {/* Tags */}
-                            <Form.Group className="mb-3">
-                                <Form.Label>Tags</Form.Label>
+
+                            <Form.Group className="mb-3" controlId="add-owner">
+                                <Form.Label>Owner</Form.Label>
                                 <Form.Select
-                                    value={form.tags}
-                                    onChange={handleChange('tags')}
+                                    value={form.owner}
+                                    onChange={handleChange('owner')}
                                 >
-                                    <option value="">Select tags</option>
-                                    {tagOptions.map(o => (
-                                        <option key={o} value={o}>
-                                            {o}
-                                        </option>
+                                    <option value="">Select owner</option>
+                                    {ownerOptions.map(o => (
+                                        <option key={o} value={o}>{o}</option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-                            {/* State */}
-                            <Form.Group className="mb-3">
+
+                            <Form.Group className="mb-3" controlId="add-tags">
+                                <Form.Label>Tags</Form.Label>
+                                <CreatableTagSelect value={tagValues} onChange={setTagValues} />
+                            </Form.Group>
+
+                            <Form.Group className="mb-3" controlId="add-state">
                                 <Form.Label>State</Form.Label>
                                 <Form.Select
                                     value={form.state}
@@ -155,14 +163,12 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                 >
                                     <option value="">Select state</option>
                                     {stateOptions.map(o => (
-                                        <option key={o} value={o}>
-                                            {o}
-                                        </option>
+                                        <option key={o} value={o}>{o}</option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-                            {/* Type */}
-                            <Form.Group className="mb-3">
+
+                            <Form.Group className="mb-3" controlId="add-type">
                                 <Form.Label>Type</Form.Label>
                                 <Form.Select
                                     value={form.type}
@@ -170,14 +176,12 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                 >
                                     <option value="">Select type</option>
                                     {typeOptions.map(o => (
-                                        <option key={o} value={o}>
-                                            {o}
-                                        </option>
+                                        <option key={o} value={o}>{o}</option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-                            {/* Automation */}
-                            <Form.Group className="mb-3">
+
+                            <Form.Group className="mb-3" controlId="add-automationStatus">
                                 <Form.Label>Automation Status</Form.Label>
                                 <Form.Select
                                     value={form.automationStatus}
@@ -185,14 +189,12 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                 >
                                     <option value="">Select automation status</option>
                                     {automationOptions.map(o => (
-                                        <option key={o} value={o}>
-                                            {o}
-                                        </option>
+                                        <option key={o} value={o}>{o}</option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-                            {/* Component */}
-                            <Form.Group className="mb-3">
+
+                            <Form.Group className="mb-3" controlId="add-component">
                                 <Form.Label>Component</Form.Label>
                                 <Form.Select
                                     value={form.component}
@@ -200,14 +202,12 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                 >
                                     <option value="">Select component</option>
                                     {componentOptions.map(o => (
-                                        <option key={o} value={o}>
-                                            {o}
-                                        </option>
+                                        <option key={o} value={o}>{o}</option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-                            {/* Use Case */}
-                            <Form.Group className="mb-3">
+
+                            <Form.Group className="mb-3" controlId="add-useCase">
                                 <Form.Label>Use Case</Form.Label>
                                 <Form.Control
                                     type="text"
@@ -215,8 +215,8 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                     onChange={handleChange('useCase')}
                                 />
                             </Form.Group>
-                            {/* Requirement */}
-                            <Form.Group className="mb-3">
+
+                            <Form.Group className="mb-3" controlId="add-requirement">
                                 <Form.Label>Requirement</Form.Label>
                                 <Form.Control
                                     type="text"
@@ -229,15 +229,11 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                 </Form>
             </Modal.Body>
             <Modal.Footer className="justify-content-end">
-                <Button variant="outline-secondary" onClick={onClose}>
-                    Cancel
-                </Button>
-                <Button variant="outline-primary" onClick={handleSubmit}>
-                    Save
-                </Button>
+                <Button variant="outline-secondary" onClick={onClose}>Cancel</Button>
+                <Button variant="outline-primary" onClick={handleSave}>Save</Button>
             </Modal.Footer>
         </Modal>
-    );
-};
+    )
+}
 
-export default AddTestCaseModal;
+export default AddTestCaseModal

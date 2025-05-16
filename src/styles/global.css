@@ -56,3 +56,18 @@ body {
 .table th {
     padding: 0.25rem 0.5rem;
 }
+
+/* Rich Text Editor styles */
+.rich-editor .ProseMirror {
+    min-height: 150px;
+    border: 1px solid #ced4da;
+    padding: 0.5rem;
+    font-family: inherit;
+    font-size: 1rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+.rich-editor .ProseMirror:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}

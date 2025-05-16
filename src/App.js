@@ -15,9 +15,20 @@ const App = () => {
                     onSelectSuite={setSelectedSuite}
                 />
             </div>
-            <div className="content-container">
-                <TestCaseView suite={selectedSuite} />
-            </div>
+                        <div className="content-container">
+                            {selectedSuite ? (
+                                <TestCaseView suite={selectedSuite} />
+                            ) : (
+                                <div
+                                    className="d-flex justify-content-center align-items-center"
+                                    style={{ height: '100%' }}
+                                >
+                                    <p className="text-muted">
+                                        Оберіть Test Suite, щоб побачити тест-кейси
+                                    </p>
+                                </div>
+                            )}
+                        </div>
         </div>
     );
 };

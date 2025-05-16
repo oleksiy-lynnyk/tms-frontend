@@ -1,7 +1,9 @@
-import React, { FC, useEffect, useState } from 'react';
-import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
-import { updateTestCase } from '../../api/testCaseApi';
-import type { TestCase } from './types';
+// src/components/testCase/EditTestCaseModal.tsx
+import React, { FC, useEffect, useState } from 'react'
+import { Modal, Button, Form, Row, Col } from 'react-bootstrap'
+import { updateTestCase } from '../../api/testCaseApi'
+import type { TestCase } from './types'
+import CreatableTagSelect, { Option } from '../common/CreatableTagSelect'
 
 import {
     priorityOptions,
@@ -11,14 +13,14 @@ import {
     typeOptions,
     automationOptions,
     componentOptions,
-} from '../../constants/testcaseOptions';
+} from '../../constants/testcaseOptions'
 
 export interface EditTestCaseModalProps {
-    show: boolean;
-    onClose: () => void;
-    onSave: () => void;
-    testCase: TestCase | null;
-    suiteId: number;
+    show: boolean
+    onClose: () => void
+    onSave: () => void
+    testCase: TestCase | null
+    suiteId: number
 }
 
 const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
@@ -28,40 +30,51 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                                            testCase,
                                                            suiteId,
                                                        }) => {
-    const [form, setForm] = useState<Partial<TestCase>>({});
+    const [form, setForm] = useState<Partial<TestCase>>({})
+    const [tags, setTags] = useState<Option[]>([])
 
     useEffect(() => {
         if (testCase) {
-            setForm({ ...testCase });
+            setForm({ ...testCase })
+            setTags(
+                testCase.tags
+                    ? testCase.tags.split(',').map(t => ({ label: t, value: t }))
+                    : []
+            )
         }
-    }, [testCase]);
+    }, [testCase])
 
     const handleChange =
         (field: keyof TestCase) =>
-            (e: React.ChangeEvent<
-                HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-            >) => {
-                setForm(prev => ({ ...prev, [field]: e.target.value }));
-            };
+            (
+                e: React.ChangeEvent<
+                    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+                >
+            ) => {
+                setForm(prev => ({ ...prev, [field]: e.target.value }))
+            }
 
     const handleSubmit = async () => {
-        if (!testCase) return;
-        await updateTestCase(testCase.id, { ...form, suiteId });
-        onSave();
-        onClose();
-    };
+        if (!testCase) return
+        const updates: Partial<TestCase> = { ...form, suiteId }
+        updates.tags = tags.map(o => o.value).join(',')
+        await updateTestCase(testCase.id, updates)
+        onSave()
+        onClose()
+    }
 
     return (
         <Modal show={show} onHide={onClose} size="xl" backdrop="static">
             <Modal.Header closeButton>
-                <Modal.Title>Edit Test Case {testCase ? `TC-${testCase.id}` : ''}</Modal.Title>
+                <Modal.Title>
+                    Edit Test Case {testCase ? `TC-${testCase.id}` : ''}
+                </Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <Form>
                     <Row>
                         <Col md={8}>
-                            {/* Title */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="edit-title">
                                 <Form.Label>Title</Form.Label>
                                 <Form.Control
                                     type="text"
@@ -69,8 +82,7 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                     onChange={handleChange('title')}
                                 />
                             </Form.Group>
-                            {/* Preconditions */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="edit-preconditions">
                                 <Form.Label>Preconditions</Form.Label>
                                 <Form.Control
                                     as="textarea"
@@ -79,8 +91,7 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                     onChange={handleChange('preconditions')}
                                 />
                             </Form.Group>
-                            {/* Description */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="edit-description">
                                 <Form.Label>Description</Form.Label>
                                 <Form.Control
                                     as="textarea"
@@ -89,8 +100,7 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                     onChange={handleChange('description')}
                                 />
                             </Form.Group>
-                            {/* Steps */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="edit-steps">
                                 <Form.Label>Test Steps</Form.Label>
                                 <Form.Control
                                     as="textarea"
@@ -99,8 +109,7 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                     onChange={handleChange('steps')}
                                 />
                             </Form.Group>
-                            {/* Expected */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="edit-expectedResult">
                                 <Form.Label>Expected Result</Form.Label>
                                 <Form.Control
                                     as="textarea"
@@ -111,8 +120,7 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                             </Form.Group>
                         </Col>
                         <Col md={4}>
-                            {/* Priority */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="edit-priority">
                                 <Form.Label>Priority</Form.Label>
                                 <Form.Select
                                     value={form.priority ?? ''}
@@ -126,22 +134,34 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-                            {/* Tags */}
-                            <Form.Group className="mb-3">
-                                <Form.Label>Tags</Form.Label>
-                                <Form.Select value={form.tags ?? ''} onChange={handleChange('tags')}>
-                                    <option value="">Select tags</option>
-                                    {tagOptions.map(o => (
+                            <Form.Group className="mb-3" controlId="edit-owner">
+                                <Form.Label>Owner</Form.Label>
+                                <Form.Select
+                                    value={form.owner ?? ''}
+                                    onChange={handleChange('owner')}
+                                >
+                                    <option value="">Select owner</option>
+                                    {ownerOptions.map(o => (
                                         <option key={o} value={o}>
                                             {o}
                                         </option>
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-                            {/* State */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="edit-tags">
+                                <Form.Label>Tags</Form.Label>
+                                <CreatableTagSelect
+                                    value={tags}
+                                    onChange={setTags}
+                                    placeholder="Select or create tags…"
+                                />
+                            </Form.Group>
+                            <Form.Group className="mb-3" controlId="edit-state">
                                 <Form.Label>State</Form.Label>
-                                <Form.Select value={form.state ?? ''} onChange={handleChange('state')}>
+                                <Form.Select
+                                    value={form.state ?? ''}
+                                    onChange={handleChange('state')}
+                                >
                                     <option value="">Select state</option>
                                     {stateOptions.map(o => (
                                         <option key={o} value={o}>
@@ -150,10 +170,12 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-                            {/* Type */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="edit-type">
                                 <Form.Label>Type</Form.Label>
-                                <Form.Select value={form.type ?? ''} onChange={handleChange('type')}>
+                                <Form.Select
+                                    value={form.type ?? ''}
+                                    onChange={handleChange('type')}
+                                >
                                     <option value="">Select type</option>
                                     {typeOptions.map(o => (
                                         <option key={o} value={o}>
@@ -162,8 +184,7 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-                            {/* Automation */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="edit-automationStatus">
                                 <Form.Label>Automation Status</Form.Label>
                                 <Form.Select
                                     value={form.automationStatus ?? ''}
@@ -177,10 +198,12 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-                            {/* Component */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="edit-component">
                                 <Form.Label>Component</Form.Label>
-                                <Form.Select value={form.component ?? ''} onChange={handleChange('component')}>
+                                <Form.Select
+                                    value={form.component ?? ''}
+                                    onChange={handleChange('component')}
+                                >
                                     <option value="">Select component</option>
                                     {componentOptions.map(o => (
                                         <option key={o} value={o}>
@@ -189,8 +212,7 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                     ))}
                                 </Form.Select>
                             </Form.Group>
-                            {/* Use Case */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="edit-useCase">
                                 <Form.Label>Use Case</Form.Label>
                                 <Form.Control
                                     type="text"
@@ -198,8 +220,7 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                     onChange={handleChange('useCase')}
                                 />
                             </Form.Group>
-                            {/* Requirement */}
-                            <Form.Group className="mb-3">
+                            <Form.Group className="mb-3" controlId="edit-requirement">
                                 <Form.Label>Requirement</Form.Label>
                                 <Form.Control
                                     type="text"
@@ -220,7 +241,7 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                 </Button>
             </Modal.Footer>
         </Modal>
-    );
-};
+    )
+}
 
-export default EditTestCaseModal;
+export default EditTestCaseModal
