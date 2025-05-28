@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap'
 import CreatableTagSelect, { Option } from '../common/CreatableTagSelect'
-import type { TestCase } from './types'
+import type { TestCase,TestCaseDTO, CreateTestCaseDTO } from '../../types'
 import {
     priorityOptions,
     ownerOptions,
@@ -17,7 +17,7 @@ interface BulkEditTestCaseModalProps {
     show: boolean
     onClose: () => void
     onSave: (updates: Partial<TestCase>) => Promise<void>
-    selectedIds: Set<number>
+    selectedIds: Set<string>
 }
 
 type Action = 'keep' | 'clear' | 'replace'

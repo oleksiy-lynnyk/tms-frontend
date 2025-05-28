@@ -1,0 +1,2 @@
+"Test Case ID","Title","Folder","State","Tags","Steps","Results","Type of Test Case","Priority","Estimate","Owner","Jira Issues"
+"","Login test","MySuite","Draft","login,smoke","1. Open login page; 2. Enter username and password; 3. Click Submit","User is redirected to dashboard","Functional","High","30min","QA","REQ-001"

@@ -21,7 +21,7 @@ body {
     display: flex;
     flex-direction: column;
     width: 240px;
-    border-right: 2px solid #a2a2a2; /* товста межа між sidebar і контентом */
+    border-right: 1px solid #a2a2a2; /* тонка межа між sidebar і контентом */
 }
 /* Контент */
 .content-container {
@@ -32,11 +32,20 @@ body {
 }
 
 /* Заголовки */
-.sidebar-header,
+
 .testcase-header {
     background: #fff;
     padding: 0.5rem 1rem;
-    border-bottom: 2px solid #a2a2a2; /* товста лінія */
+    border-bottom: 1px solid #a2a2a2; /* тонка лінія */
+    z-index: 10;
+}
+
+/* Заголовки */
+.sidebar-header
+ {
+    background: #fff;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #a2a2a2; /* тонка лінія */
     z-index: 10;
 }
 
@@ -71,3 +80,28 @@ body {
     outline: none;
     box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
 }
+body, .app-container {
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 15px;
+    background: #f8f9fa;
+}
+table {
+    font-size: 15px;
+}
+.table td, .table th {
+    vertical-align: middle !important;
+}
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 3px 14px;
+}
+.btn-link {
+    color: #1976d2 !important;
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none !important;
+    padding: 0;
+}
+

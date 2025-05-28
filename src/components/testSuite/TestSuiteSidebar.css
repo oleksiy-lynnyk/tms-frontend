@@ -1,0 +1,80 @@
+/* src/components/testSuite/TestSuiteSidebar.css */
+
+.sidebar-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-right: 2px solid #ddd;
+    position: relative;
+    overflow: visible; /* щоб меню виходило назовні */
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background: #fff;
+    border-bottom: 2px solid #ddd;
+    z-index: 1;
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.suite-node {
+    user-select: none;
+}
+
+.suite-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    padding-left: 8px;   /* базовий відступ від лівого краю */
+    cursor: pointer;
+}
+
+.suite-row.selected {
+    background-color: #e9ecef;
+}
+
+.suite-icon {
+    flex-shrink: 0;
+    margin-right: 4px;    /* трохи “віддиху” перед текстом */
+}
+
+.suite-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.suite-menu {
+    margin-left: auto;
+    margin-right: 8px;
+}
+
+.suite-menu-btn {
+    background: transparent;
+    border: none;
+    padding: 0 6px;
+    color: #666;
+    display: flex;
+}
+
+.suite-menu .dropdown-menu {
+    z-index: 2000;
+}
+
+.sidebar-resizer {
+    width: 4px;
+    cursor: ew-resize;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+}

@@ -1,87 +1,81 @@
-// src/components/testCase/MoveTestCaseModal.tsx
-import React, { FC, useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Modal, Button, Form } from 'react-bootstrap'
-import { getSuitesTree } from '../../api/testSuiteApi'
+import { fetchSuitesTree } from '../../api/testSuiteApi'
+import type { TestSuiteDTO } from '../../types'
 
-interface SuiteNode {
-    id: number
-    name: string
-    children?: SuiteNode[]
+function flatten(tree: TestSuiteDTO[]): TestSuiteDTO[] {
+    const flat: TestSuiteDTO[] = []
+    const recur = (nodes: TestSuiteDTO[]) => {
+        for (const node of nodes) {
+            flat.push(node)
+            if (node.children && node.children.length > 0) recur(node.children)
+        }
+    }
+    recur(tree)
+    return flat
 }
 
 interface Props {
     show: boolean
     onClose: () => void
-    /** Викликається з цільовим suiteId — кейси будуть у нього переміщені */
-    onMove: (targetSuiteId: number) => Promise<void> | void
+    onMove: (targetSuiteId: string) => Promise<void> | void
     selectedCount: number
+    projectId: string
 }
 
-const flatten = (nodes: SuiteNode[], out: SuiteNode[] = []): SuiteNode[] =>
-    nodes.reduce((acc, n) => {
-        acc.push(n)
-        if (n.children) flatten(n.children, acc)
-        return acc
-    }, out)
-
-const MoveTestCaseModal: FC<Props> = ({
-                                          show,
-                                          onClose,
-                                          onMove,
-                                          selectedCount,
-                                      }) => {
-    const [suites, setSuites] = useState<SuiteNode[]>([])
-    const [targetId, setTargetId] = useState<number>()
+const MoveTestCaseModal: React.FC<Props> = ({
+                                                show,
+                                                onClose,
+                                                onMove,
+                                                selectedCount,
+                                                projectId,
+                                            }) => {
+    const [suites, setSuites] = useState<TestSuiteDTO[]>([])
+    const [targetId, setTargetId] = useState<string | null>(null)
 
     useEffect(() => {
         if (!show) return
-        getSuitesTree()
-            .then(res => setSuites(flatten(res.data || [])))
+        fetchSuitesTree(projectId)
+            .then(tree => setSuites(flatten(tree)))
             .catch(() => setSuites([]))
-    }, [show])
+    }, [show, projectId])
 
     const handleSubmit = async () => {
-        if (targetId == null) return
+        if (!targetId) return
         await onMove(targetId)
         onClose()
     }
 
     return (
-        <Modal show={show} onHide={onClose} centered>
+        <Modal show={show} onHide={onClose}>
             <Modal.Header closeButton>
-                <Modal.Title>Move Test Cases ({selectedCount})</Modal.Title>
+                <Modal.Title>Move {selectedCount} Test Case{selectedCount > 1 ? 's' : ''}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <Form.Group controlId="move-target-suite">
-                    <Form.Label>Select destination Test Suite</Form.Label>
-                    <Form.Select
-                        value={targetId ?? ''}
-                        onChange={e => setTargetId(Number(e.target.value))}
-                    >
-                        <option value="">— choose suite —</option>
-                        {suites.map(s => (
-                            <option key={s.id} value={s.id}>
-                                {s.name}
-                            </option>
-                        ))}
-                    </Form.Select>
-                </Form.Group>
+                <Form>
+                    <Form.Group>
+                        <Form.Label>Select target suite</Form.Label>
+                        <Form.Control
+                            as="select"
+                            value={targetId ?? ''}
+                            onChange={e => setTargetId(e.target.value)}
+                        >
+                            <option value="" disabled>Select suite</option>
+                            {suites.map(suite => (
+                                <option key={suite.id} value={suite.id}>
+                                    {suite.name}
+                                </option>
+                            ))}
+                        </Form.Control>
+                    </Form.Group>
+                </Form>
             </Modal.Body>
-            <Modal.Footer className="justify-content-end">
-                <Button variant="outline-secondary" onClick={onClose}>
-                    Cancel
-                </Button>
-                <Button
-                    variant="primary"
-                    onClick={handleSubmit}
-                    disabled={targetId == null}
-                >
-                    Move
-                </Button>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={onClose}>Cancel</Button>
+                <Button variant="primary" onClick={handleSubmit} disabled={!targetId}>Move</Button>
             </Modal.Footer>
         </Modal>
     )
 }
 
 export default MoveTestCaseModal
-

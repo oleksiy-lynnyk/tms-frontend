@@ -1,8 +1,7 @@
-// src/components/testCase/EditTestCaseModal.tsx
 import React, { FC, useEffect, useState } from 'react'
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap'
-import { updateTestCase } from '../../api/testCaseApi'
-import type { TestCase } from './types'
+import { updateCase } from '../../api/testCaseApi'
+import type { TestCaseDTO } from '../../types'
 import CreatableTagSelect, { Option } from '../common/CreatableTagSelect'
 
 import {
@@ -18,9 +17,9 @@ import {
 export interface EditTestCaseModalProps {
     show: boolean
     onClose: () => void
-    onSave: () => void
-    testCase: TestCase | null
-    suiteId: number
+    onSave: () => Promise<void>
+    testCase: TestCaseDTO | null
+    suiteId: string
 }
 
 const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
@@ -30,7 +29,7 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                                            testCase,
                                                            suiteId,
                                                        }) => {
-    const [form, setForm] = useState<Partial<TestCase>>({})
+    const [form, setForm] = useState<Partial<TestCaseDTO>>({})
     const [tags, setTags] = useState<Option[]>([])
 
     useEffect(() => {
@@ -38,30 +37,49 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
             setForm({ ...testCase })
             setTags(
                 testCase.tags
-                    ? testCase.tags.split(',').map(t => ({ label: t, value: t }))
+                    ? testCase.tags.split(',').map((t: string) => ({ label: t, value: t }))
                     : []
             )
         }
     }, [testCase])
 
     const handleChange =
-        (field: keyof TestCase) =>
+        (field: keyof TestCaseDTO) =>
             (
                 e: React.ChangeEvent<
                     HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
                 >
             ) => {
-                setForm(prev => ({ ...prev, [field]: e.target.value }))
+                setForm((prev: Partial<TestCaseDTO>) => ({ ...prev, [field]: e.target.value }))
             }
 
-    const handleSubmit = async () => {
-        if (!testCase) return
-        const updates: Partial<TestCase> = { ...form, suiteId }
-        updates.tags = tags.map(o => o.value).join(',')
-        await updateTestCase(testCase.id, updates)
-        onSave()
-        onClose()
-    }
+    const handleSubmit = async (): Promise<void> => {
+        if (!testCase) return;
+
+        const fullSuiteId = suiteId?.toString() ?? '';
+        const updates: Omit<TestCaseDTO, 'id'> = {
+            title: form.title ?? '',
+            preconditions: form.preconditions ?? '',
+            description: form.description ?? '',
+            steps: form.steps ?? '',
+            expectedResult: form.expectedResult ?? '',
+            priority: form.priority ?? '',
+            owner: form.owner ?? '',
+            tags: tags.map(o => o.value).join(','),
+            state: form.state ?? '',
+            type: form.type ?? '',
+            automationStatus: form.automationStatus ?? '',
+            component: form.component ?? '',
+            useCase: form.useCase ?? '',
+            requirement: form.requirement ?? '',
+            suiteId: fullSuiteId,
+            projectId: form.projectId ?? '',
+        };
+
+        await updateCase(testCase.id, updates);
+        await onSave();
+        onClose();
+    };
 
     return (
         <Modal show={show} onHide={onClose} size="xl" backdrop="static">

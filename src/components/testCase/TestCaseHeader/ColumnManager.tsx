@@ -1,7 +1,7 @@
 // src/components/testCase/TestCaseHeader/ColumnManager.tsx
 import React, { FC } from 'react'
 import { Dropdown, Form } from 'react-bootstrap'
-import type { ColumnKey } from '../types'
+import type { ColumnKey } from '../../../types/testCase'
 
 interface Props {
     visibleColumns: Record<ColumnKey, boolean>

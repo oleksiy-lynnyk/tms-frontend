@@ -1,0 +1,205 @@
+// src/components/testSuite/TestSuiteSidebar.tsx
+import React, { FC, useState, useEffect, useRef } from 'react'
+import type { MouseEvent as ReactMouseEvent } from 'react'
+import { Button, Spinner, Dropdown } from 'react-bootstrap'
+import {
+    fetchSuitesTree,
+    createSuite,
+    updateSuite,
+    deleteSuite,
+} from '../../api/testSuiteApi'
+import type { TestSuiteDTO } from '../../types'
+import SuiteModal from './SuiteModal'
+import {
+    Folder as FolderIcon,
+    FolderOpen as FolderOpenIcon,
+    File as FileIcon,
+    MoreVertical as MoreIcon,
+} from 'lucide-react'
+import './TestSuiteSidebar.css'
+
+export interface Props {
+    projectId: string;
+    selected?: TestSuiteDTO | null;
+    onSelectSuite: (suite: TestSuiteDTO | null) => void;
+    onDeleteSuite: (suite: TestSuiteDTO | null) => void;
+    refreshFlag: number;
+    collapsed: boolean;
+}
+
+const MIN_WIDTH = 200
+const MAX_WIDTH = 480
+
+const CustomToggle = React.forwardRef<
+    HTMLButtonElement,
+    { onClick(e: ReactMouseEvent<HTMLButtonElement>): void; children?: React.ReactNode }
+>(({ onClick, children }, ref) => (
+    <button
+        ref={ref}
+        className="suite-menu-btn"
+        onClick={e => {
+            e.stopPropagation()
+            onClick(e)
+        }}
+    >
+        {children}
+    </button>
+))
+CustomToggle.displayName = 'CustomToggle'
+
+const TestSuiteSidebar: FC<Props> = ({
+                                         projectId,
+                                         selected,
+                                         onSelectSuite,
+                                         onDeleteSuite,
+                                         refreshFlag,
+                                         collapsed,
+                                     }) => {
+    const [suites, setSuites] = useState<TestSuiteDTO[]>([])
+    const [loading, setLoading] = useState(false)
+    const [expanded, setExpanded] = useState<Set<string>>(new Set())
+    const [modalSuite, setModalSuite] = useState<TestSuiteDTO | undefined>()
+    const [showModal, setShowModal] = useState(false)
+    const [width, setWidth] = useState(240)
+    const resizingRef = useRef(false)
+
+    const fetchSuites = async () => {
+        setLoading(true);
+        try {
+            const res = await fetchSuitesTree(projectId); // ← передаєш projectId!
+            setSuites(res);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    useEffect(() => {
+        void fetchSuites()
+        return () => {
+            resizingRef.current = false
+        }
+    }, [refreshFlag])
+
+    useEffect(() => {
+        const onMouseMove = (e: MouseEvent) => {
+            if (resizingRef.current) {
+                let w = e.clientX
+                if (w < MIN_WIDTH) w = MIN_WIDTH
+                if (w > MAX_WIDTH) w = MAX_WIDTH
+                setWidth(w)
+            }
+        }
+        const onMouseUp = () => {
+            resizingRef.current = false
+        }
+        window.addEventListener('mousemove', onMouseMove)
+        window.addEventListener('mouseup', onMouseUp)
+        return () => {
+            window.removeEventListener('mousemove', onMouseMove)
+            window.removeEventListener('mouseup', onMouseUp)
+        }
+    }, [])
+
+    const toggle = (id: string) => {
+        setExpanded(prev => {
+            const next = new Set(prev)
+            if (next.has(id)) next.delete(id)
+            else next.add(id)
+            return next
+        })
+    }
+
+    const renderNode = (node: TestSuiteDTO, level = 0) => {
+        const isOpen = expanded.has(node.id)
+        const isSelected = selected?.id === node.id
+
+        return (
+            <div
+                key={node.id}
+                className={`suite-node${isSelected ? ' selected' : ''}`}
+                style={{ paddingLeft: level * 16 }}
+            >
+                <div className="suite-row">
+                    <span className="suite-icon" onClick={() => toggle(node.id)}>
+                        {node.children?.length
+                            ? isOpen
+                                ? <FolderOpenIcon size={16}/>
+                                : <FolderIcon size={16}/>
+                            : <FileIcon size={16}/>}
+                    </span>
+                    <span
+                        className="suite-name"
+                        title={`${node.name} (${node.testCases?.length ?? 0})`}
+                        onClick={() => onSelectSuite(node)}
+                    >
+                        {node.name} ({node.testCases?.length ?? 0})
+                    </span>
+
+                    <Dropdown drop="end" className="suite-menu" onClick={e => e.stopPropagation()}>
+                        <Dropdown.Toggle as={CustomToggle}>
+                            <MoreIcon size={16}/>
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            <Dropdown.Item onClick={() => { setModalSuite(node); setShowModal(true) }}>
+                                Edit
+                            </Dropdown.Item>
+                            <Dropdown.Item onClick={async () => {
+                                await deleteSuite(node.id)
+                                onDeleteSuite(node)
+                                await fetchSuites()
+                            }}>
+                                Delete
+                            </Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+                </div>
+
+                {isOpen && node.children?.map(child => renderNode(child, level + 1))}
+            </div>
+        )
+    }
+
+    return (
+        <div className="sidebar-container" style={{ width: collapsed ? 64 : width }}>
+            <div className="sidebar-header d-flex align-items-center justify-content-between">
+                <h5 className="m-0">Folders</h5>
+                <Button size="sm" variant="outline-primary" onClick={() => {
+                    setModalSuite(undefined)
+                    setShowModal(true)
+                }}>
+                    + New
+                </Button>
+            </div>
+
+            <div className="sidebar-content">
+                {loading
+                    ? <div className="text-center py-4"><Spinner animation="border"/></div>
+                    : suites.map(s => renderNode(s))
+                }
+            </div>
+
+            <div className="sidebar-resizer" onMouseDown={() => { resizingRef.current = true }}/>
+
+            <SuiteModal
+                show={showModal}
+                suite={modalSuite}
+                allSuites={suites}
+                onClose={() => setShowModal(false)}
+                onSave={async dto => {
+                    const { id, ...payload } = dto
+                    if (id) {
+                        await updateSuite(id, { ...payload, projectId })  // projectId з пропса
+                    } else {
+                        await createSuite({ ...payload, projectId })      // projectId з пропса
+                    }
+                    setShowModal(false)
+                    await fetchSuites()
+                }}
+            />
+
+        </div>
+    )
+}
+
+export default TestSuiteSidebar

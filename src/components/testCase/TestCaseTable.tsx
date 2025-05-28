@@ -1,12 +1,12 @@
 import React, { FC } from 'react'
 import { Table, Button } from 'react-bootstrap'
-import type { TestCase, ColumnKey } from './types'
+import type { TestCase, ColumnKey } from '../../types'
 
 interface Props {
     testCases: TestCase[]
     visibleColumns: Record<ColumnKey, boolean>
-    selectedIds: Set<number>
-    onToggleSelect: (id: number) => void
+    selectedIds: Set<string>
+    onToggleSelect: (id: string) => void
     onSelectAll: (checked: boolean) => void
     onEdit: (tc: TestCase) => void
     onDelete: (tc: TestCase) => void
