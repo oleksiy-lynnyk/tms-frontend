@@ -105,3 +105,34 @@ table {
     padding: 0;
 }
 
+.main-content-panel {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px #e8eaf0;
+    margin: 24px 24px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 75vh;
+}
+
+.testcase-toolbar {
+    padding: 18px 24px 10px 24px;
+    border-bottom: 1px solid #eaeaea;
+    background: #fff;
+    min-height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.folders-tree-sidebar {
+    background: #fafbfc;
+    border-right: 1px solid #e8eaf0;
+    padding-top: 24px;
+    min-width: 220px;
+    max-width: 340px;
+    height: 100%;
+}
+

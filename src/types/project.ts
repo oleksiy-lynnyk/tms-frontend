@@ -3,5 +3,7 @@ export interface ProjectDTO {
     name: string;
     description?: string;
     code?: string;
+    testCaseCount?: number
+
     // ... будь-які інші поля
 }

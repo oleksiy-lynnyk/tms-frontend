@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useParams, Routes, Route, Navigate } from 'react-router-dom';
 import ProjectMenu from './ProjectMenu';
-import TestSuiteSidebar from '../testSuite/TestSuiteSidebar';
+import FoldersTreeSidebar from '../testSuite/FoldersTreeSidebar';
 import TestCaseView from '../testCase/TestCaseView';
 import TestRunsView from '../testRun/TestRunsView';
 import type { TestSuiteDTO } from '../../types';
 
 const ProjectPage: React.FC = () => {
-    const { id: projectId } = useParams<{ id: string }>();
+    const { projectId } = useParams<{ projectId: string }>();
+
+    // ХУКИ ТІЛЬКИ НА ВЕРХНЬОМУ РІВНІ
     const [selectedSuite, setSelectedSuite] = useState<TestSuiteDTO | null>(null);
     const [sidebarRefreshFlag, setSidebarRefreshFlag] = useState(0);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -25,7 +27,7 @@ const ProjectPage: React.FC = () => {
                         path="cases"
                         element={
                             <>
-                                <TestSuiteSidebar
+                                <FoldersTreeSidebar
                                     projectId={projectId}
                                     selected={selectedSuite}
                                     onSelectSuite={setSelectedSuite}
@@ -42,7 +44,7 @@ const ProjectPage: React.FC = () => {
                     <Route
                         path="suites"
                         element={
-                            <TestSuiteSidebar
+                            <FoldersTreeSidebar
                                 projectId={projectId}
                                 selected={selectedSuite}
                                 onSelectSuite={setSelectedSuite}

@@ -61,7 +61,6 @@ const ProjectsView: React.FC = () => {
         <div className="container-fluid py-4" style={{ minHeight: '100vh' }}>
             <div className="mx-auto" style={{ maxWidth: 2400 }}>
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h2 className="mb-0 app-font">Projects</h2>
                     <Button onClick={() => { setEditProject(undefined); setShowModal(true); }}>
                         + New Project
                     </Button>
@@ -73,7 +72,9 @@ const ProjectsView: React.FC = () => {
                             <th style={{ width: 100 }}>Code</th>
                             <th>Project Title</th>
                             <th>Description</th>
+                            <th style={{ width: 120 }}>Test Cases</th>
                             <th style={{ width: 170 }}>Actions</th>
+
                         </tr>
                         </thead>
                         <tbody>
@@ -89,12 +90,13 @@ const ProjectsView: React.FC = () => {
                                         <button
                                             className="btn btn-link p-0 app-font"
                                             style={{ fontSize: 16, fontWeight: 500, textDecoration: 'underline', color: '#3d6cf3' }}
-                                            onClick={() => navigate(`/project/${project.id}`)}
+                                            onClick={() => navigate(`/project/${project.id}/cases`)}
                                         >
                                             {project.name}
                                         </button>
                                     </td>
                                     <td>{project.description}</td>
+                                    <td>{project.testCaseCount ?? 0}</td>
                                     <td>
                                         <Button
                                             variant="outline-primary"

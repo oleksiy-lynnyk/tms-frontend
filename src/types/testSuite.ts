@@ -9,6 +9,8 @@ export interface TestSuiteDTO {
         parentId?: string | null;
         children?: TestSuiteDTO[];
         testCases?: TestCaseDTO[];
+        testCaseCount?: number
+
 }
 
 /** Alias для компонент */

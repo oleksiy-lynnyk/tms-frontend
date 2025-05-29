@@ -16,7 +16,7 @@ import {
     File as FileIcon,
     MoreVertical as MoreIcon,
 } from 'lucide-react'
-import './TestSuiteSidebar.css'
+import './FoldersTreeSidebar.css'
 
 export interface Props {
     projectId: string;
@@ -47,7 +47,7 @@ const CustomToggle = React.forwardRef<
 ))
 CustomToggle.displayName = 'CustomToggle'
 
-const TestSuiteSidebar: FC<Props> = ({
+const FoldersTreeSidebar: FC<Props> = ({
                                          projectId,
                                          selected,
                                          onSelectSuite,
@@ -130,11 +130,12 @@ const TestSuiteSidebar: FC<Props> = ({
                     </span>
                     <span
                         className="suite-name"
-                        title={`${node.name} (${node.testCases?.length ?? 0})`}
+                        title={`${node.name} (${node.testCaseCount ?? 0})`}
                         onClick={() => onSelectSuite(node)}
                     >
-                        {node.name} ({node.testCases?.length ?? 0})
+                        {node.name} ({node.testCaseCount ?? 0})
                     </span>
+
 
                     <Dropdown drop="end" className="suite-menu" onClick={e => e.stopPropagation()}>
                         <Dropdown.Toggle as={CustomToggle}>
@@ -162,25 +163,13 @@ const TestSuiteSidebar: FC<Props> = ({
 
     return (
         <div className="sidebar-container" style={{ width: collapsed ? 64 : width }}>
-            <div className="sidebar-header d-flex align-items-center justify-content-between">
-                <h5 className="m-0">Folders</h5>
-                <Button size="sm" variant="outline-primary" onClick={() => {
-                    setModalSuite(undefined)
-                    setShowModal(true)
-                }}>
-                    + New
-                </Button>
-            </div>
-
             <div className="sidebar-content">
                 {loading
                     ? <div className="text-center py-4"><Spinner animation="border"/></div>
                     : suites.map(s => renderNode(s))
                 }
             </div>
-
             <div className="sidebar-resizer" onMouseDown={() => { resizingRef.current = true }}/>
-
             <SuiteModal
                 show={showModal}
                 suite={modalSuite}
@@ -189,17 +178,17 @@ const TestSuiteSidebar: FC<Props> = ({
                 onSave={async dto => {
                     const { id, ...payload } = dto
                     if (id) {
-                        await updateSuite(id, { ...payload, projectId })  // projectId з пропса
+                        await updateSuite(id, { ...payload, projectId })
                     } else {
-                        await createSuite({ ...payload, projectId })      // projectId з пропса
+                        await createSuite({ ...payload, projectId })
                     }
                     setShowModal(false)
                     await fetchSuites()
                 }}
             />
-
         </div>
     )
+
 }
 
-export default TestSuiteSidebar
+export default FoldersTreeSidebar
