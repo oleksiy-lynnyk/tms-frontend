@@ -117,14 +117,15 @@ table {
     min-height: 75vh;
 }
 
-.testcase-toolbar {
-    padding: 18px 24px 10px 24px;
-    border-bottom: 1px solid #eaeaea;
+.top-header, .testcase-toolbar, .sidebar-header {
+    min-height: 56px;
     background: #fff;
-    min-height: 62px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #a2a2a2;
+    z-index: 10;
 }
 
 .folders-tree-sidebar {
@@ -136,3 +137,9 @@ table {
     height: 100%;
 }
 
+.table {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    table-layout: auto;
+}

@@ -53,8 +53,8 @@ const TestCaseTable: FC<Props> = ({
         sortField === key ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ''
 
     return (
-        <Table hover size="sm" className="table-bordered mb-0">
-            <thead>
+        <Table hover size="sm" className="table-bordered mb-0" style={{ width: '100%' }}>
+        <thead>
             <tr>
                 {COLUMN_DEFS.map(col => {
                     if (!visibleColumns[col.key]) return null

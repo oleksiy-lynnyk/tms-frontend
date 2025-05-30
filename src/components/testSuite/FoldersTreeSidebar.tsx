@@ -1,4 +1,4 @@
-// src/components/testSuite/TestSuiteSidebar.tsx
+// src/components/testSuite/FoldersTreeSidebar.tsx
 import React, { FC, useState, useEffect, useRef } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import { Button, Spinner, Dropdown } from 'react-bootstrap'
@@ -48,13 +48,13 @@ const CustomToggle = React.forwardRef<
 CustomToggle.displayName = 'CustomToggle'
 
 const FoldersTreeSidebar: FC<Props> = ({
-                                         projectId,
-                                         selected,
-                                         onSelectSuite,
-                                         onDeleteSuite,
-                                         refreshFlag,
-                                         collapsed,
-                                     }) => {
+                                           projectId,
+                                           selected,
+                                           onSelectSuite,
+                                           onDeleteSuite,
+                                           refreshFlag,
+                                           collapsed,
+                                       }) => {
     const [suites, setSuites] = useState<TestSuiteDTO[]>([])
     const [loading, setLoading] = useState(false)
     const [expanded, setExpanded] = useState<Set<string>>(new Set())
@@ -72,7 +72,6 @@ const FoldersTreeSidebar: FC<Props> = ({
             setLoading(false);
         }
     };
-
 
     useEffect(() => {
         void fetchSuites()
@@ -124,9 +123,9 @@ const FoldersTreeSidebar: FC<Props> = ({
                     <span className="suite-icon" onClick={() => toggle(node.id)}>
                         {node.children?.length
                             ? isOpen
-                                ? <FolderOpenIcon size={16}/>
-                                : <FolderIcon size={16}/>
-                            : <FileIcon size={16}/>}
+                                ? <FolderOpenIcon size={16} />
+                                : <FolderIcon size={16} />
+                            : <FileIcon size={16} />}
                     </span>
                     <span
                         className="suite-name"
@@ -136,10 +135,9 @@ const FoldersTreeSidebar: FC<Props> = ({
                         {node.name} ({node.testCaseCount ?? 0})
                     </span>
 
-
                     <Dropdown drop="end" className="suite-menu" onClick={e => e.stopPropagation()}>
                         <Dropdown.Toggle as={CustomToggle}>
-                            <MoreIcon size={16}/>
+                            <MoreIcon size={16} />
                         </Dropdown.Toggle>
                         <Dropdown.Menu>
                             <Dropdown.Item onClick={() => { setModalSuite(node); setShowModal(true) }}>
@@ -163,13 +161,28 @@ const FoldersTreeSidebar: FC<Props> = ({
 
     return (
         <div className="sidebar-container" style={{ width: collapsed ? 64 : width }}>
+            {/* Додаємо шапку з кнопкою "+ New" */}
+            <div className="sidebar-header d-flex align-items-center justify-content-between">
+                <h5 className="m-0">Folders</h5>
+                <Button
+                    size="sm"
+                    variant="outline-primary"
+                    onClick={() => {
+                        setModalSuite(undefined)
+                        setShowModal(true)
+                    }}
+                >
+                    + New
+                </Button>
+            </div>
+
             <div className="sidebar-content">
                 {loading
-                    ? <div className="text-center py-4"><Spinner animation="border"/></div>
+                    ? <div className="text-center py-4"><Spinner animation="border" /></div>
                     : suites.map(s => renderNode(s))
                 }
             </div>
-            <div className="sidebar-resizer" onMouseDown={() => { resizingRef.current = true }}/>
+            <div className="sidebar-resizer" onMouseDown={() => { resizingRef.current = true }} />
             <SuiteModal
                 show={showModal}
                 suite={modalSuite}
@@ -188,7 +201,6 @@ const FoldersTreeSidebar: FC<Props> = ({
             />
         </div>
     )
-
 }
 
 export default FoldersTreeSidebar

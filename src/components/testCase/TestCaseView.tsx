@@ -1,4 +1,3 @@
-// src/components/testCase/TestCaseView.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import TestCaseToolbar from './TestCaseToolbar';
 import TestCaseTable from './TestCaseTable';
@@ -68,9 +67,14 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
     const [showImport, setShowImport] = useState(false);
     const [currentCase, setCurrentCase] = useState<TestCaseDTO | null>(null);
 
-    // Завантаження сторінки
+    // Fetch cases only if suite is selected
     const fetchCases = useCallback(async () => {
-        if (!suite) return;
+        if (!suite) {
+            setCases([]);
+            setTotalElements(0);
+            setTotalPages(0);
+            return;
+        }
         const pageResp = await fetchCasesBySuite(
             suite.id,
             search,
@@ -87,7 +91,7 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
         void fetchCases();
     }, [fetchCases]);
 
-    // Сортування — виключаємо "select"
+    // Sorting
     const handleSort = (field: ColumnKey) => {
         if (field === 'select') return;
         if (field === sortField) {
@@ -100,18 +104,7 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
         void fetchCases();
     };
 
-    if (!suite) {
-        return (
-            <div
-                className="d-flex justify-content-center align-items-center"
-                style={{ height: '100%' }}
-            >
-                <p className="text-muted">Select a Test Suite to view cases</p>
-            </div>
-        );
-    }
-
-    // Виділення
+    // Selection
     const toggleSelect = (id: string) => {
         setSelectedIds((prev) => {
             const next = new Set(prev);
@@ -123,23 +116,95 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
         setSelectedIds(checked ? new Set(cases.map((c) => c.id)) : new Set());
     };
 
-    // CRUD, Bulk, Pagination, etc. (як у тебе)
-
-    const startItem = totalElements > 0 ? currentPage * pageSize + 1 : 0;
-    const endItem = Math.min((currentPage + 1) * pageSize, totalElements);
-
+    // CRUD
+    const handleAddSave = async () => {
+        setShowAdd(false);
+        await fetchCases();
+    };
     const handleEditClick = (tc: TestCaseDTO) => {
         setCurrentCase(tc);
         setShowEdit(true);
     };
-
     const handleDeleteConfirm = (tc: TestCaseDTO) => {
         setCurrentCase(tc);
         setShowDel(true);
     };
+    const handleDelete = async () => {
+        if (!currentCase) return;
+        await deleteCase(currentCase.id);
+        setShowDel(false);
+        await fetchCases();
+    };
+
+    // Bulk Edit
+    const handleBulkSave = async (
+        updates: Partial<Omit<TestCaseDTO, 'id'>>
+    ) => {
+        await Promise.all(
+            Array.from(selectedIds).map((id) => {
+                const orig = cases.find((c) => c.id === id);
+                if (!orig) return Promise.resolve();
+                const fullUpdate: Omit<TestCaseDTO, 'id'> = {
+                    ...orig,
+                    ...updates,
+                    title: updates.title ?? orig.title ?? '',
+                    projectId: updates.projectId ?? orig.projectId ?? '',
+                    suiteId: updates.suiteId ?? orig.suiteId ?? '',
+                };
+                return updateCase(id, fullUpdate);
+            })
+        );
+        setShowBulkEdit(false);
+        await fetchCases();
+    };
+
+    const handleBulkDelete = async () => {
+        await Promise.all(Array.from(selectedIds).map((id) => deleteCase(id)));
+        setShowBulkDelete(false);
+        await fetchCases();
+    };
+    const handleBulkCopy = async (targetSuiteId: string) => {
+        await Promise.all(
+            Array.from(selectedIds).map(async (id) => {
+                const orig = cases.find((c) => c.id === id);
+                if (orig) {
+                    const { id: _, ...data } = orig;
+                    await createCase({
+                        ...data,
+                        suiteId: targetSuiteId,
+                        projectId: orig.projectId,
+                    });
+                }
+            })
+        );
+        setShowBulkCopy(false);
+        await fetchCases();
+    };
+    const handleBulkMove = async (targetSuiteId: string) => {
+        await Promise.all(
+            Array.from(selectedIds).map((id) => {
+                const orig = cases.find((c) => c.id === id);
+                if (!orig) return Promise.resolve();
+                const fullUpdate: Omit<TestCaseDTO, 'id'> = {
+                    ...orig,
+                    suiteId: targetSuiteId,
+                    title: orig.title ?? '',
+                    projectId: orig.projectId ?? '',
+                };
+                return updateCase(id, fullUpdate);
+            })
+        );
+        setShowBulkMove(false);
+        await fetchCases();
+    };
+
+    // Pagination
+    const startItem = totalElements > 0 ? currentPage * pageSize + 1 : 0;
+    const endItem = Math.min((currentPage + 1) * pageSize, totalElements);
 
     return (
-        <div className="main-content-panel">
+        <div className="d-flex flex-column h-100" style={{ width: '100%', minWidth: 0 }}>
+            {/* --- Тулбар завжди видимий --- */}
             <TestCaseToolbar
                 search={search}
                 onSearch={setSearch}
@@ -154,9 +219,10 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
                 onToggleColumn={k =>
                     setVisibleCols(cols => ({ ...cols, [k]: !cols[k] }))
                 }
+                
             />
 
-            <div style={{ flexGrow: 1, overflowY: 'auto' }}>
+            <div style={{ flexGrow: 1, width: '100%', overflowY: 'auto', minWidth: 0 }}>
                 <TestCaseTable
                     testCases={cases}
                     visibleColumns={visibleCols}
@@ -181,8 +247,60 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
                 onPageChange={setCurrentPage}
             />
 
-            {/* Модалки — залишаєш як є */}
-            {/* ... */}
+            {/* Модалки для CRUD — все як було */}
+            <AddTestCaseModal
+                show={showAdd}
+                onClose={() => setShowAdd(false)}
+                suiteId={suite?.id ?? ''}
+                projectId={projectId}
+                onSave={handleAddSave}
+            />
+            <EditTestCaseModal
+                show={showEdit}
+                onClose={() => setShowEdit(false)}
+                onSave={handleAddSave}
+                testCase={currentCase}
+                suiteId={suite?.id ?? ''}
+            />
+            <DeleteConfirmModal
+                show={showDel}
+                onClose={() => setShowDel(false)}
+                onConfirm={handleDelete}
+                itemName={currentCase?.title}
+            />
+            <BulkEditTestCaseModal
+                show={showBulkEdit}
+                onClose={() => setShowBulkEdit(false)}
+                onSave={handleBulkSave}
+                selectedIds={selectedIds}
+            />
+            <CopyTestCaseModal
+                show={showBulkCopy}
+                onClose={() => setShowBulkCopy(false)}
+                onCopy={handleBulkCopy}
+                selectedCount={selectedIds.size}
+                projectId={projectId}
+            />
+            <MoveTestCaseModal
+                show={showBulkMove}
+                onClose={() => setShowBulkMove(false)}
+                onMove={handleBulkMove}
+                selectedCount={selectedIds.size}
+                projectId={projectId}
+            />
+            <DeleteConfirmModal
+                show={showBulkDelete}
+                onClose={() => setShowBulkDelete(false)}
+                onConfirm={handleBulkDelete}
+                title="Delete Test Cases"
+                body={`Are you sure you want to delete ${selectedIds.size} test case${selectedIds.size > 1 ? 's' : ''}? This action cannot be undone.`}
+            />
+            <ImportTestCasesModal
+                show={showImport}
+                onClose={() => setShowImport(false)}
+                onImported={fetchCases}
+                suiteId={suite?.id ?? ''}
+            />
         </div>
     );
 };
