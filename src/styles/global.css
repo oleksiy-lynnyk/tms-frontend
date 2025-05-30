@@ -4,120 +4,42 @@ html, body, #root {
     padding: 0;
 }
 
-body {
-    font-family: Avenir, Helvetica, Arial, sans-serif;
-    font-size: 14px;
+body, .app-container {
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 15px;
     background: #f8f9fa;
+    height: 100%;
 }
 
 .app-container {
     display: flex;
     height: 100vh;
+    width: 100vw;
     overflow: hidden;
 }
 
-/* Сайдбар */
 .sidebar-container {
     display: flex;
     flex-direction: column;
     width: 240px;
-    border-right: 1px solid #a2a2a2; /* тонка межа між sidebar і контентом */
+    min-width: 200px;
+    max-width: 340px;
+    border-right: 1px solid #e8eaf0;
+    background: #fafbfc;
+    height: 100%;
 }
-/* Контент */
+
 .content-container {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-}
-
-/* Заголовки */
-
-.testcase-header {
-    background: #fff;
-    padding: 0.5rem 1rem;
-    border-bottom: 1px solid #a2a2a2; /* тонка лінія */
-    z-index: 10;
-}
-
-/* Заголовки */
-.sidebar-header
- {
-    background: #fff;
-    padding: 0.5rem 1rem;
-    border-bottom: 1px solid #a2a2a2; /* тонка лінія */
-    z-index: 10;
-}
-
-.testcase-header {
-    display: flex;
-    align-items: center;
-}
-
-/* Таблиця */
-.table-wrapper {
-    flex: 1;
-    overflow: auto;
-}
-
-/* Забираємо червоні падінги в таблиці */
-.table td,
-.table th {
-    padding: 0.25rem 0.5rem;
-}
-
-/* Rich Text Editor styles */
-.rich-editor .ProseMirror {
-    min-height: 150px;
-    border: 1px solid #ced4da;
-    padding: 0.5rem;
-    font-family: inherit;
-    font-size: 1rem;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-.rich-editor .ProseMirror:focus {
-    outline: none;
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-}
-body, .app-container {
-    font-family: 'Inter', Arial, sans-serif;
-    font-size: 15px;
-    background: #f8f9fa;
-}
-table {
-    font-size: 15px;
-}
-.table td, .table th {
-    vertical-align: middle !important;
-}
-.btn {
-    border-radius: 8px;
-    font-weight: 500;
-    font-size: 14px;
-    padding: 3px 14px;
-}
-.btn-link {
-    color: #1976d2 !important;
-    font-weight: 600;
-    font-size: 15px;
-    text-decoration: none !important;
-    padding: 0;
-}
-
-.main-content-panel {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px #e8eaf0;
-    margin: 24px 24px 0 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
     min-width: 0;
-    min-height: 75vh;
 }
 
-.top-header, .testcase-toolbar, .sidebar-header {
+.top-header,
+.testcase-toolbar,
+.sidebar-header {
     min-height: 56px;
     background: #fff;
     display: flex;
@@ -126,20 +48,37 @@ table {
     padding: 0.5rem 1rem;
     border-bottom: 1px solid #a2a2a2;
     z-index: 10;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.folders-tree-sidebar {
-    background: #fafbfc;
-    border-right: 1px solid #e8eaf0;
-    padding-top: 24px;
-    min-width: 220px;
-    max-width: 340px;
-    height: 100%;
+.testcase-toolbar {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.table-wrapper {
+    flex: 1;
+    overflow: auto;
+    min-width: 0;
 }
 
 .table {
     width: 100%;
+    table-layout: auto;
+    font-size: 15px;
     margin: 0;
     padding: 0;
-    table-layout: auto;
+}
+
+.table td, .table th {
+    vertical-align: middle !important;
+    padding: 0.25rem 0.5rem;
+}
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 3px 14px;
 }

@@ -53,8 +53,8 @@ const TestCaseTable: FC<Props> = ({
         sortField === key ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ''
 
     return (
-        <Table hover size="sm" className="table-bordered mb-0" style={{ width: '100%' }}>
-        <thead>
+        <Table hover size="sm" className="table-bordered mb-0 table">
+            <thead>
             <tr>
                 {COLUMN_DEFS.map(col => {
                     if (!visibleColumns[col.key]) return null
@@ -72,7 +72,6 @@ const TestCaseTable: FC<Props> = ({
                     }
 
                     if (col.key === 'suiteId' || col.key === 'preconditions' || col.key === 'description' || col.key === 'steps' || col.key === 'expectedResult' || col.key === 'useCase') {
-                        // ці поля ми не сортуємо кліком
                         return <th key={col.key}>{col.label}</th>
                     }
 
@@ -88,7 +87,6 @@ const TestCaseTable: FC<Props> = ({
                     )
                 })}
 
-                {/** Actions завжди вкінці */}
                 <th>Actions</th>
             </tr>
             </thead>

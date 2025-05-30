@@ -203,8 +203,7 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
     const endItem = Math.min((currentPage + 1) * pageSize, totalElements);
 
     return (
-        <div className="d-flex flex-column h-100" style={{ width: '100%', minWidth: 0 }}>
-            {/* --- Тулбар завжди видимий --- */}
+        <div className="d-flex flex-column h-100" style={{ width: '100%' }}>
             <TestCaseToolbar
                 search={search}
                 onSearch={setSearch}
@@ -219,10 +218,9 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
                 onToggleColumn={k =>
                     setVisibleCols(cols => ({ ...cols, [k]: !cols[k] }))
                 }
-                
             />
 
-            <div style={{ flexGrow: 1, width: '100%', overflowY: 'auto', minWidth: 0 }}>
+            <div className="table-wrapper" style={{ width: '100%', flexGrow: 1, minWidth: 0 }}>
                 <TestCaseTable
                     testCases={cases}
                     visibleColumns={visibleCols}
