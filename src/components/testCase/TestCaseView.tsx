@@ -220,7 +220,7 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
                 }
             />
 
-            <div className="table-wrapper" style={{ width: '100%', flexGrow: 1, minWidth: 0 }}>
+            <div className="table-wrapper" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
                 <TestCaseTable
                     testCases={cases}
                     visibleColumns={visibleCols}
@@ -239,6 +239,7 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
                 {`Showing ${startItem} to ${endItem} of ${totalElements} results`}
             </div>
 
+            <div className="mb-3">
             <AppPagination
                 currentPage={currentPage}
                 totalPages={totalPages}
@@ -299,6 +300,7 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
                 onImported={fetchCases}
                 suiteId={suite?.id ?? ''}
             />
+        </div>
         </div>
     );
 };
