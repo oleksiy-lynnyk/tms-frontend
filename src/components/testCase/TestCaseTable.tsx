@@ -1,23 +1,23 @@
 import React, { FC } from 'react'
 import { Table, Button } from 'react-bootstrap'
-import type { TestCase, ColumnKey } from '../../types'
+import type { TestCaseDTO, ColumnKey } from '../../types'
 
 interface Props {
-    testCases: TestCase[]
+    testCases: TestCaseDTO[]
     visibleColumns: Record<ColumnKey, boolean>
     selectedIds: Set<string>
     onToggleSelect: (id: string) => void
     onSelectAll: (checked: boolean) => void
-    onEdit: (tc: TestCase) => void
-    onDelete: (tc: TestCase) => void
+    onEdit: (tc: TestCaseDTO) => void
+    onDelete: (tc: TestCaseDTO) => void
     onSort: (field: ColumnKey) => void
-    sortField: keyof TestCase
+    sortField: keyof TestCaseDTO
     sortDir: 'asc' | 'desc'
 }
 
 const COLUMN_DEFS: Array<{ key: ColumnKey; label: string }> = [
     { key: 'select', label: '' },
-    { key: 'code', label: 'Code' }, // ← id видалено!
+    { key: 'code', label: 'Code' },
     { key: 'title', label: 'Title' },
     { key: 'priority', label: 'Priority' },
     { key: 'owner', label: 'Owner' },
@@ -49,7 +49,7 @@ const TestCaseTable: FC<Props> = ({
                                   }) => {
     const allSelected = testCases.length > 0 && testCases.every(tc => selectedIds.has(tc.id))
 
-    const renderSortArrow = (key: keyof TestCase) =>
+    const renderSortArrow = (key: keyof TestCaseDTO) =>
         sortField === key ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ''
 
     return (
@@ -78,7 +78,7 @@ const TestCaseTable: FC<Props> = ({
                             onClick={() => onSort(col.key)}
                         >
                             {col.label}
-                            {renderSortArrow(col.key as keyof TestCase)}
+                            {renderSortArrow(col.key as keyof TestCaseDTO)}
                         </th>
                     )
                 })}
@@ -103,8 +103,8 @@ const TestCaseTable: FC<Props> = ({
                             )
                         }
                         // value для кожної колонки
-                        const val = c[col.key as keyof TestCase] ?? '-';
-                        return <td key={col.key}>{val}</td>
+                        const val = c[col.key as keyof TestCaseDTO] ?? '-';
+                        return <td key={col.key}>{String(val)}</td>
                     })}
 
                     <td>
