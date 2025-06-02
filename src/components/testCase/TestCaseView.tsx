@@ -191,13 +191,14 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
             Array.from(selectedIds).map(async (id) => {
                 const orig = cases.find((c) => c.id === id);
                 if (orig) {
-                    // Видаляємо id та code, не передаємо code взагалі!
+                    // !!! code не передаємо, id теж не передаємо
                     const { id, code, ...rest } = orig;
                     await createCase({
                         ...rest,
                         suiteId: targetSuiteId,
                         projectId: orig.projectId,
-                    } as any); // TS не лається
+                        // code тут не передавати!
+                    } as any);
                 }
             })
         );

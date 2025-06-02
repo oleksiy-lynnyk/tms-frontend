@@ -80,25 +80,33 @@ const FoldersTreeSidebar: FC<Props> = ({
         }
     }, [refreshFlag])
 
+// FoldersTreeSidebar.tsx (після useEffect, який fetchSuites)
     useEffect(() => {
-        const onMouseMove = (e: MouseEvent) => {
-            if (resizingRef.current) {
-                let w = e.clientX
-                if (w < MIN_WIDTH) w = MIN_WIDTH
-                if (w > MAX_WIDTH) w = MAX_WIDTH
-                setWidth(w)
+        if (suites.length > 0 && (!selected || !findSuiteById(suites, selected?.id))) {
+            // Функція шукає перший leaf-сьют
+            const findFirst = (nodes: TestSuiteDTO[]): TestSuiteDTO => {
+                let current = nodes[0];
+                while (current.children && current.children.length > 0) {
+                    current = current.children[0];
+                }
+                return current;
+            };
+            onSelectSuite(findFirst(suites));
+        }
+        // eslint-disable-next-line
+    }, [suites]);
+
+// Додатково (допоміжна функція)
+    function findSuiteById(nodes: TestSuiteDTO[], id: string | undefined): boolean {
+        if (!id) return false;
+        for (const node of nodes) {
+            if (node.id === id) return true;
+            if (node.children && node.children.length > 0) {
+                if (findSuiteById(node.children, id)) return true;
             }
         }
-        const onMouseUp = () => {
-            resizingRef.current = false
-        }
-        window.addEventListener('mousemove', onMouseMove)
-        window.addEventListener('mouseup', onMouseUp)
-        return () => {
-            window.removeEventListener('mousemove', onMouseMove)
-            window.removeEventListener('mouseup', onMouseUp)
-        }
-    }, [])
+        return false;
+    }
 
     const toggle = (id: string) => {
         setExpanded(prev => {
