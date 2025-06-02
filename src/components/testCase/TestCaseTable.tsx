@@ -10,14 +10,14 @@ interface Props {
     onSelectAll: (checked: boolean) => void
     onEdit: (tc: TestCase) => void
     onDelete: (tc: TestCase) => void
-    onSort: (field: keyof TestCase) => void
+    onSort: (field: ColumnKey) => void
     sortField: keyof TestCase
     sortDir: 'asc' | 'desc'
 }
 
 const COLUMN_DEFS: Array<{ key: ColumnKey; label: string }> = [
     { key: 'select', label: '' },
-    { key: 'id', label: 'ID' },
+    { key: 'code', label: 'Code' }, // ← id видалено!
     { key: 'title', label: 'Title' },
     { key: 'priority', label: 'Priority' },
     { key: 'owner', label: 'Owner' },
@@ -71,22 +71,17 @@ const TestCaseTable: FC<Props> = ({
                         )
                     }
 
-                    if (col.key === 'suiteId' || col.key === 'preconditions' || col.key === 'description' || col.key === 'steps' || col.key === 'expectedResult' || col.key === 'useCase') {
-                        return <th key={col.key}>{col.label}</th>
-                    }
-
                     return (
                         <th
                             key={col.key}
                             style={{ cursor: 'pointer' }}
-                            onClick={() => onSort(col.key as keyof TestCase)}
+                            onClick={() => onSort(col.key)}
                         >
                             {col.label}
                             {renderSortArrow(col.key as keyof TestCase)}
                         </th>
                     )
                 })}
-
                 <th>Actions</th>
             </tr>
             </thead>
@@ -107,27 +102,8 @@ const TestCaseTable: FC<Props> = ({
                                 </td>
                             )
                         }
-
-                        const val = (() => {
-                            switch (col.key) {
-                                case 'id': return `TC-${c.id}`
-                                case 'title': return c.title
-                                case 'priority': return c.priority ?? '-'
-                                case 'owner': return c.owner ?? '-'
-                                case 'tags': return c.tags ?? '-'
-                                case 'state': return c.state ?? '-'
-                                case 'type': return c.type ?? '-'
-                                case 'automationStatus': return c.automationStatus ?? '-'
-                                case 'component': return c.component ?? '-'
-                                case 'requirement': return c.requirement ?? '-'
-                                case 'preconditions': return c.preconditions ?? '-'
-                                case 'description': return c.description ?? '-'
-                                case 'steps': return c.steps ?? '-'
-                                case 'expectedResult': return c.expectedResult ?? '-'
-                                case 'useCase': return c.useCase ?? '-'
-                                case 'suiteId': return c.suiteId ?? '-'
-                            }
-                        })()
+                        // value для кожної колонки
+                        const val = c[col.key as keyof TestCase] ?? '-';
                         return <td key={col.key}>{val}</td>
                     })}
 

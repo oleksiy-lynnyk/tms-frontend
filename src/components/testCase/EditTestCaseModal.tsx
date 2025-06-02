@@ -54,10 +54,12 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
             }
 
     const handleSubmit = async (): Promise<void> => {
-        if (!testCase) return;
+        if (!testCase) return
 
-        const fullSuiteId = suiteId?.toString() ?? '';
+        const fullSuiteId = suiteId?.toString() ?? ''
+        // не дозволяємо змінювати code з модалки
         const updates: Omit<TestCaseDTO, 'id'> = {
+            code: testCase.code,
             title: form.title ?? '',
             preconditions: form.preconditions ?? '',
             description: form.description ?? '',
@@ -74,18 +76,18 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
             requirement: form.requirement ?? '',
             suiteId: fullSuiteId,
             projectId: form.projectId ?? '',
-        };
+        }
 
-        await updateCase(testCase.id, updates);
-        await onSave();
-        onClose();
-    };
+        await updateCase(testCase.id, updates)
+        await onSave()
+        onClose()
+    }
 
     return (
         <Modal show={show} onHide={onClose} size="xl" backdrop="static">
             <Modal.Header closeButton>
                 <Modal.Title>
-                    Edit Test Case {testCase ? `TC-${testCase.id}` : ''}
+                    Edit Test Case {testCase?.code ? testCase.code : ''}
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>

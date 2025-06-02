@@ -1,6 +1,6 @@
 // src/api/testCaseApi.ts
 import { api } from './axios';
-import type { TestCaseDTO, BulkTestCaseRequestDTO, ImportResultDto, PageResponse } from '../types';
+import type {TestCaseDTO, BulkTestCaseRequestDTO, ImportResultDto, PageResponse, CreateTestCaseDTO} from '../types';
 import type {AxiosProgressEvent} from "axios";
 
 export const fetchCasesBySuite = async (
@@ -24,7 +24,7 @@ export const fetchCase = async (id: string): Promise<TestCaseDTO> => {
 };
 
 export const createCase = async (
-    testCase: Omit<TestCaseDTO, 'id'>
+    testCase: CreateTestCaseDTO
 ): Promise<TestCaseDTO> => {
     const { data } = await api.post<TestCaseDTO>('/cases', testCase);
     return data;

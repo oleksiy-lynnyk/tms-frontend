@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap'
 import CreatableTagSelect, { Option } from '../common/CreatableTagSelect'
-import type { TestCase,TestCaseDTO, CreateTestCaseDTO } from '../../types'
+import type { TestCase } from '../../types'
 import {
     priorityOptions,
     ownerOptions,
@@ -16,14 +16,14 @@ import {
 interface BulkEditTestCaseModalProps {
     show: boolean
     onClose: () => void
-    onSave: (updates: Partial<TestCase>) => Promise<void>
+    onSave: (updates: Partial<Omit<TestCase, "id" | "code">>) => Promise<void>
     selectedIds: Set<string>
 }
 
 type Action = 'keep' | 'clear' | 'replace'
 
 const fieldDefs: Array<{
-    key: keyof TestCase
+    key: keyof Omit<TestCase, "id" | "code">
     label: string
     options: string[]
 }> = [
@@ -42,27 +42,23 @@ const BulkEditTestCaseModal: React.FC<BulkEditTestCaseModalProps> = ({
                                                                          onSave,
                                                                          selectedIds,
                                                                      }) => {
-    // state for actions per field
-    const [actions, setActions] = useState<Record<string, Action>>(Object.fromEntries(
-        fieldDefs.map(f => [f.key, 'keep'])
-    ) as Record<string,Action>)
-    // state for scalar field values
-    const [values, setValues] = useState<Record<string, string>>(Object.fromEntries(
-        fieldDefs.filter(f => f.key !== 'tags').map(f => [f.key, ''])
-    ) as Record<string,string>)
-    // separate state for tag Options
+    const [actions, setActions] = useState<Record<string, Action>>(
+        Object.fromEntries(fieldDefs.map(f => [f.key, 'keep'])) as Record<string, Action>
+    )
+    const [values, setValues] = useState<Record<string, string>>(
+        Object.fromEntries(fieldDefs.filter(f => f.key !== 'tags').map(f => [f.key, ''])) as Record<string, string>
+    )
     const [tagValues, setTagValues] = useState<Option[]>([])
 
     useEffect(() => {
         if (!show) {
-            // reset all state on close
-            setActions(Object.fromEntries(fieldDefs.map(f => [f.key, 'keep'])) as Record<string,Action>)
-            setValues(Object.fromEntries(fieldDefs.filter(f => f.key !== 'tags').map(f => [f.key, ''])) as Record<string,string>)
+            setActions(Object.fromEntries(fieldDefs.map(f => [f.key, 'keep'])) as Record<string, Action>)
+            setValues(Object.fromEntries(fieldDefs.filter(f => f.key !== 'tags').map(f => [f.key, ''])) as Record<string, string>)
             setTagValues([])
         }
     }, [show])
 
-    const handleActionChange = (field: keyof TestCase) => (
+    const handleActionChange = (field: keyof Omit<TestCase, "id" | "code">) => (
         e: React.ChangeEvent<HTMLSelectElement>
     ) => {
         const a = e.target.value as Action
@@ -75,20 +71,20 @@ const BulkEditTestCaseModal: React.FC<BulkEditTestCaseModalProps> = ({
         }
     }
 
-    const handleValueChange = (field: keyof TestCase) => (
+    const handleValueChange = (field: keyof Omit<TestCase, "id" | "code">) => (
         e: React.ChangeEvent<HTMLSelectElement>
     ) => {
         setValues(prev => ({ ...prev, [field]: e.target.value }))
     }
 
     const handleSubmit = async () => {
-        const updates: Partial<TestCase> = {}
+        const updates: Partial<Omit<TestCase, "id" | "code">> = {}
         for (const { key } of fieldDefs) {
             const action = actions[key]
             if (key === 'tags') {
                 if (action === 'clear') {
                     updates.tags = ''
-                } else if (action === 'replace' && tagValues.length > 0) {
+                } else if (action === 'replace') {
                     updates.tags = tagValues.map(o => o.value).join(',')
                 }
             } else {

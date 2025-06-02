@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 
 const defaultColumns = {
-    id: true,
+    // id: true,               // ← Видалено!
+    code: true,                // ← Додаємо як основну колонку
     title: true,
     priority: true,
     owner: true,

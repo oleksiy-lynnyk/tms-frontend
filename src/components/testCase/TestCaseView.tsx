@@ -9,6 +9,8 @@ import CopyTestCaseModal from './CopyTestCaseModal';
 import MoveTestCaseModal from './MoveTestCaseModal';
 import ImportTestCasesModal from './ImportTestCasesModal';
 import AppPagination from '../common/Pagination';
+import ManageColumnsModal from './ManageColumnsModal';
+
 import type { TestCaseDTO } from '../../types';
 import type { ColumnKey } from '../../types';
 
@@ -20,9 +22,11 @@ import {
 } from '../../api/testCaseApi';
 
 type VisibleColumns = Record<ColumnKey, boolean>;
-const defaultColumns: VisibleColumns = {
-    select: false,
-    id: true,
+const COLUMNS_STORAGE_KEY = 'tmsVisibleColumns';
+
+const getDefaultColumns = (): VisibleColumns => ({
+    select: true,
+    code: true,      // ← id видалено, code — головний
     title: true,
     priority: true,
     owner: true,
@@ -39,7 +43,7 @@ const defaultColumns: VisibleColumns = {
     expectedResult: false,
     useCase: false,
     suiteId: false,
-};
+});
 
 interface Props {
     suite: { id: string; name: string } | null;
@@ -49,8 +53,9 @@ interface Props {
 const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
     const [cases, setCases] = useState<TestCaseDTO[]>([]);
     const [search, setSearch] = useState('');
-    const [visibleCols, setVisibleCols] = useState<VisibleColumns>(defaultColumns);
-    const [sortField, setSortField] = useState<ColumnKey>('id');
+    const [visibleCols, setVisibleCols] = useState<VisibleColumns>(getDefaultColumns());
+    // Сортировка по code (або title)
+    const [sortField, setSortField] = useState<ColumnKey>('code');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [currentPage, setCurrentPage] = useState(0);
@@ -65,7 +70,25 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
     const [showBulkMove, setShowBulkMove] = useState(false);
     const [showBulkDelete, setShowBulkDelete] = useState(false);
     const [showImport, setShowImport] = useState(false);
+    const [showManageColumns, setShowManageColumns] = useState(false);
     const [currentCase, setCurrentCase] = useState<TestCaseDTO | null>(null);
+
+    // COLS: load from localStorage
+    useEffect(() => {
+        const raw = localStorage.getItem(COLUMNS_STORAGE_KEY);
+        if (raw) {
+            try {
+                setVisibleCols(JSON.parse(raw));
+            } catch (e) {
+                setVisibleCols(getDefaultColumns());
+            }
+        }
+    }, []);
+
+    // COLS: save to localStorage
+    useEffect(() => {
+        localStorage.setItem(COLUMNS_STORAGE_KEY, JSON.stringify(visibleCols));
+    }, [visibleCols]);
 
     // Fetch cases only if suite is selected
     const fetchCases = useCallback(async () => {
@@ -168,18 +191,20 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
             Array.from(selectedIds).map(async (id) => {
                 const orig = cases.find((c) => c.id === id);
                 if (orig) {
-                    const { id: _, ...data } = orig;
+                    // Видаляємо id та code, не передаємо code взагалі!
+                    const { id, code, ...rest } = orig;
                     await createCase({
-                        ...data,
+                        ...rest,
                         suiteId: targetSuiteId,
                         projectId: orig.projectId,
-                    });
+                    } as any); // TS не лається
                 }
             })
         );
         setShowBulkCopy(false);
         await fetchCases();
     };
+
     const handleBulkMove = async (targetSuiteId: string) => {
         await Promise.all(
             Array.from(selectedIds).map((id) => {
@@ -214,10 +239,15 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
                 onBulkCopy={() => setShowBulkCopy(true)}
                 onBulkMove={() => setShowBulkMove(true)}
                 onBulkDelete={() => setShowBulkDelete(true)}
-                visibleColumns={visibleCols}
-                onToggleColumn={k =>
-                    setVisibleCols(cols => ({ ...cols, [k]: !cols[k] }))
-                }
+                onShowManageColumns={() => setShowManageColumns(true)}
+            />
+
+            <ManageColumnsModal
+                show={showManageColumns}
+                onClose={() => setShowManageColumns(false)}
+                columns={visibleCols}
+                onToggle={k => setVisibleCols(cols => ({ ...cols, [k as ColumnKey]: !cols[k as ColumnKey] }))}
+                onReset={() => setVisibleCols(getDefaultColumns())}
             />
 
             <div className="table-wrapper" style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
@@ -230,7 +260,7 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
                     onEdit={handleEditClick}
                     onDelete={handleDeleteConfirm}
                     onSort={handleSort}
-                    sortField={sortField === 'select' ? 'id' : sortField}
+                    sortField={sortField === 'select' ? 'code' : sortField}
                     sortDir={sortDir}
                 />
             </div>
@@ -240,67 +270,67 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
             </div>
 
             <div className="mb-3">
-            <AppPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-            />
+                <AppPagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                />
 
-            {/* Модалки для CRUD — все як було */}
-            <AddTestCaseModal
-                show={showAdd}
-                onClose={() => setShowAdd(false)}
-                suiteId={suite?.id ?? ''}
-                projectId={projectId}
-                onSave={handleAddSave}
-            />
-            <EditTestCaseModal
-                show={showEdit}
-                onClose={() => setShowEdit(false)}
-                onSave={handleAddSave}
-                testCase={currentCase}
-                suiteId={suite?.id ?? ''}
-            />
-            <DeleteConfirmModal
-                show={showDel}
-                onClose={() => setShowDel(false)}
-                onConfirm={handleDelete}
-                itemName={currentCase?.title}
-            />
-            <BulkEditTestCaseModal
-                show={showBulkEdit}
-                onClose={() => setShowBulkEdit(false)}
-                onSave={handleBulkSave}
-                selectedIds={selectedIds}
-            />
-            <CopyTestCaseModal
-                show={showBulkCopy}
-                onClose={() => setShowBulkCopy(false)}
-                onCopy={handleBulkCopy}
-                selectedCount={selectedIds.size}
-                projectId={projectId}
-            />
-            <MoveTestCaseModal
-                show={showBulkMove}
-                onClose={() => setShowBulkMove(false)}
-                onMove={handleBulkMove}
-                selectedCount={selectedIds.size}
-                projectId={projectId}
-            />
-            <DeleteConfirmModal
-                show={showBulkDelete}
-                onClose={() => setShowBulkDelete(false)}
-                onConfirm={handleBulkDelete}
-                title="Delete Test Cases"
-                body={`Are you sure you want to delete ${selectedIds.size} test case${selectedIds.size > 1 ? 's' : ''}? This action cannot be undone.`}
-            />
-            <ImportTestCasesModal
-                show={showImport}
-                onClose={() => setShowImport(false)}
-                onImported={fetchCases}
-                suiteId={suite?.id ?? ''}
-            />
-        </div>
+                {/* Модалки для CRUD — все як було */}
+                <AddTestCaseModal
+                    show={showAdd}
+                    onClose={() => setShowAdd(false)}
+                    suiteId={suite?.id ?? ''}
+                    projectId={projectId}
+                    onSave={handleAddSave}
+                />
+                <EditTestCaseModal
+                    show={showEdit}
+                    onClose={() => setShowEdit(false)}
+                    onSave={handleAddSave}
+                    testCase={currentCase}
+                    suiteId={suite?.id ?? ''}
+                />
+                <DeleteConfirmModal
+                    show={showDel}
+                    onClose={() => setShowDel(false)}
+                    onConfirm={handleDelete}
+                    itemName={currentCase?.code}
+                />
+                <BulkEditTestCaseModal
+                    show={showBulkEdit}
+                    onClose={() => setShowBulkEdit(false)}
+                    onSave={handleBulkSave}
+                    selectedIds={selectedIds}
+                />
+                <CopyTestCaseModal
+                    show={showBulkCopy}
+                    onClose={() => setShowBulkCopy(false)}
+                    onCopy={handleBulkCopy}
+                    selectedCount={selectedIds.size}
+                    projectId={projectId}
+                />
+                <MoveTestCaseModal
+                    show={showBulkMove}
+                    onClose={() => setShowBulkMove(false)}
+                    onMove={handleBulkMove}
+                    selectedCount={selectedIds.size}
+                    projectId={projectId}
+                />
+                <DeleteConfirmModal
+                    show={showBulkDelete}
+                    onClose={() => setShowBulkDelete(false)}
+                    onConfirm={handleBulkDelete}
+                    title="Delete Test Cases"
+                    body={`Are you sure you want to delete ${selectedIds.size} test case${selectedIds.size > 1 ? 's' : ''}? This action cannot be undone.`}
+                />
+                <ImportTestCasesModal
+                    show={showImport}
+                    onClose={() => setShowImport(false)}
+                    onImported={fetchCases}
+                    suiteId={suite?.id ?? ''}
+                />
+            </div>
         </div>
     );
 };

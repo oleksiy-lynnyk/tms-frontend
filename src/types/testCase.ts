@@ -2,6 +2,7 @@ import type { Page } from './common'
 
 export interface TestCaseDTO {
     id: string;
+    code: string; // code є у збережених, обов’язковий
     title: string;
     description?: string;
     preconditions?: string;
@@ -24,7 +25,7 @@ export type TestCase = TestCaseDTO;
 
 export type ColumnKey =
     | 'select'
-    | 'id'
+    | 'code'
     | 'title'
     | 'priority'
     | 'owner'
@@ -42,7 +43,8 @@ export type ColumnKey =
     | 'useCase'
     | 'suiteId';
 
-export type CreateTestCaseDTO = Omit<TestCaseDTO, 'id'>;
+// Головне виправлення:
+export type CreateTestCaseDTO = Omit<TestCaseDTO, 'id' | 'code'> & { code?: string };
 export type UpdateTestCaseDTO = Partial<Omit<TestCaseDTO, 'id'>>;
 export type TestCasePage = Page<TestCaseDTO>;
 

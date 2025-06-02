@@ -1,4 +1,4 @@
-// src/constants/testcaseOptions.js
+// src/constants/testcaseOptions.tsx
 
 export const priorityOptions = ['High', 'Medium', 'Low'];
 export const tagOptions = ['Smoke', 'Regression', 'Critical'];

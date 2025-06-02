@@ -10,7 +10,7 @@ export interface DeleteConfirmModalProps {
     title?: string;
     /** Тіло модалки, замість стандартного */
     body?: string;
-    /** Ім’я об’єкта для стандартного повідомлення */
+    /** Ім’я об’єкта для стандартного повідомлення (сюди будемо передавати code) */
     itemName?: string;
 }
 
@@ -41,3 +41,4 @@ const DeleteConfirmModal: FC<DeleteConfirmModalProps> = ({
 );
 
 export default DeleteConfirmModal;
+

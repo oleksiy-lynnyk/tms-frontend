@@ -1,7 +1,6 @@
-// src/components/testCase/TestCaseToolbar.tsx
 import React from 'react';
-import { Button, InputGroup, Form, Dropdown } from 'react-bootstrap';
-import type { ColumnKey } from '../../types';
+import { Button, InputGroup, Form } from 'react-bootstrap';
+import type { ColumnKey } from '../../types'; // або просто type ColumnKey = string;
 
 interface Props {
     search: string;
@@ -13,14 +12,13 @@ interface Props {
     onBulkCopy: () => void;
     onBulkMove: () => void;
     onBulkDelete: () => void;
-    visibleColumns: Record<ColumnKey, boolean>;
-    onToggleColumn: (k: ColumnKey) => void;
+    onShowManageColumns: () => void; // ← нова пропса!
 }
 
 const TestCaseToolbar: React.FC<Props> = ({
                                               search, onSearch, onAdd, onImportCsv,
                                               anySelected, onBulkEdit, onBulkCopy, onBulkMove, onBulkDelete,
-                                              visibleColumns, onToggleColumn
+                                              onShowManageColumns
                                           }) => (
     <div className="testcase-toolbar">
         <div className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
@@ -50,36 +48,7 @@ const TestCaseToolbar: React.FC<Props> = ({
         <div className="d-flex align-items-center" style={{ gap: '0.5rem' }}>
             <Button size="sm" variant="outline-primary" onClick={onAdd}>Add Test Case</Button>
             <Button size="sm" variant="outline-primary" onClick={onImportCsv}>Import CSV</Button>
-            <Dropdown>
-                <Dropdown.Toggle size="sm" variant="outline-primary" id="dropdown-columns">
-                    Manage Columns
-                </Dropdown.Toggle>
-                <Dropdown.Menu
-                    style={{ maxHeight: 250, overflowY: 'auto', padding: '0.5rem', fontSize: '14px' }}
-                >
-                    {Object.entries(visibleColumns).map(([key, visible]) => (
-                        <Form.Check
-                            as="label"
-                            key={key}
-                            htmlFor={`col-${key}`}
-                            className="d-flex align-items-center mb-1"
-                            style={{ cursor: 'pointer', fontSize: '14px' }}
-                        >
-                            <Form.Check.Input
-                                type="checkbox"
-                                id={`col-${key}`}
-                                checked={!!visible}
-                                onChange={() => onToggleColumn(key as ColumnKey)}
-                            />
-                            <Form.Check.Label className="ms-2 mb-0">
-                                {key === 'automationStatus'
-                                    ? 'Automation'
-                                    : key.charAt(0).toUpperCase() + key.slice(1)}
-                            </Form.Check.Label>
-                        </Form.Check>
-                    ))}
-                </Dropdown.Menu>
-            </Dropdown>
+            <Button size="sm" variant="outline-primary" onClick={onShowManageColumns}>Manage Columns</Button>
         </div>
     </div>
 );

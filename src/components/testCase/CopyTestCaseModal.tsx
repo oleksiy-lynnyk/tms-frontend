@@ -1,3 +1,4 @@
+// src/components/testCase/CopyTestCaseModal.tsx
 import React, { useEffect, useState } from 'react'
 import { Modal, Button, Form } from 'react-bootstrap'
 import { fetchSuitesTree } from '../../api/testSuiteApi'
@@ -49,7 +50,9 @@ const CopyTestCaseModal: React.FC<Props> = ({
     return (
         <Modal show={show} onHide={onClose}>
             <Modal.Header closeButton>
-                <Modal.Title>Copy {selectedCount} Test Case{selectedCount > 1 ? 's' : ''}</Modal.Title>
+                <Modal.Title>
+                    Copy {selectedCount} Test Case{selectedCount > 1 ? 's' : ''}
+                </Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <Form>
@@ -60,7 +63,9 @@ const CopyTestCaseModal: React.FC<Props> = ({
                             value={targetId ?? ''}
                             onChange={e => setTargetId(e.target.value)}
                         >
-                            <option value="" disabled>Select suite</option>
+                            <option value="" disabled>
+                                Select suite
+                            </option>
                             {suites.map(suite => (
                                 <option key={suite.id} value={suite.id}>
                                     {suite.name}
@@ -71,8 +76,16 @@ const CopyTestCaseModal: React.FC<Props> = ({
                 </Form>
             </Modal.Body>
             <Modal.Footer>
-                <Button variant="secondary" onClick={onClose}>Cancel</Button>
-                <Button variant="primary" onClick={handleSubmit} disabled={!targetId}>Copy</Button>
+                <Button variant="secondary" onClick={onClose}>
+                    Cancel
+                </Button>
+                <Button
+                    variant="primary"
+                    onClick={handleSubmit}
+                    disabled={!targetId}
+                >
+                    Copy
+                </Button>
             </Modal.Footer>
         </Modal>
     )
