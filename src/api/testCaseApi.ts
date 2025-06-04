@@ -3,20 +3,24 @@ import { api } from './axios';
 import type {TestCaseDTO, BulkTestCaseRequestDTO, ImportResultDto, PageResponse, CreateTestCaseDTO} from '../types';
 import type {AxiosProgressEvent} from "axios";
 
-export const fetchCasesBySuite = async (
+export async function fetchCasesBySuite(
     suiteId: string,
     search: string,
     page: number,
-    size: number
-): Promise<PageResponse<TestCaseDTO>> => {
-    const params: any = { page, size };
-    if (search) params.search = search;
-    const { data } = await api.get<PageResponse<TestCaseDTO>>(
-        `/cases/suite/${suiteId}`,
-        { params }
-    );
-    return data;
-};
+    pageSize: number,
+    sortField: string = 'code',
+    sortDir: 'asc' | 'desc' = 'asc'
+) {
+    const params = new URLSearchParams({
+        suiteId,
+        search,
+        page: String(page),
+        size: String(pageSize),
+        sort: `${sortField},${sortDir}`,
+    });
+    const res = await fetch(`/api/cases?${params.toString()}`);
+    return await res.json();
+}
 
 export const fetchCase = async (id: string): Promise<TestCaseDTO> => {
     const { data } = await api.get<TestCaseDTO>(`/cases/${id}`);

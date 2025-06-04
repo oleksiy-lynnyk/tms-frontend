@@ -20,6 +20,7 @@ import {
     createCase,
 } from '../../api/testCaseApi';
 
+type SortableColumn = Exclude<ColumnKey, 'select'>;
 type VisibleColumns = Record<ColumnKey, boolean>;
 const COLUMNS_STORAGE_KEY = 'tmsVisibleColumns';
 
@@ -53,7 +54,7 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
     const [cases, setCases] = useState<TestCaseDTO[]>([]);
     const [search, setSearch] = useState('');
     const [visibleCols, setVisibleCols] = useState<VisibleColumns>(getDefaultColumns());
-    const [sortField, setSortField] = useState<ColumnKey>('code');
+    const [sortField, setSortField] = useState<SortableColumn>('code'); // <-- ТУТ!
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [currentPage, setCurrentPage] = useState(0);
@@ -100,13 +101,15 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
             suite.id,
             search,
             currentPage,
-            pageSize
+            pageSize,
+            sortField,
+            sortDir
         );
         setCases(pageResp.content);
         setTotalElements(pageResp.totalElements);
         setTotalPages(pageResp.totalPages);
         setSelectedIds(new Set());
-    }, [suite, currentPage, search]);
+    }, [suite, currentPage, search, sortField, sortDir, pageSize]);
 
     useEffect(() => {
         void fetchCases();
@@ -114,15 +117,14 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
 
     // Sorting
     const handleSort = (field: ColumnKey) => {
-        if (field === 'select') return;
+        if (field === 'select') return; // Не даємо сортувати по select
         if (field === sortField) {
             setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
         } else {
-            setSortField(field);
+            setSortField(field as SortableColumn);
             setSortDir('asc');
         }
         setCurrentPage(0);
-        void fetchCases();
     };
 
     // Selection
@@ -222,9 +224,7 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
         await fetchCases();
     };
 
-    // Pagination
-    // Передаємо у Table (footer) — тепер глобально, не окремим div!
-
+    // Pagination (ця логіка тепер у Table через пропси page, pageSize, total...)
     return (
         <div className="d-flex flex-column h-100" style={{ width: '100%' }}>
             <TestCaseToolbar
@@ -258,7 +258,7 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
                     onEdit={handleEditClick}
                     onDelete={handleDeleteConfirm}
                     onSort={handleSort}
-                    sortField={sortField === 'select' ? 'code' : sortField}
+                    sortField={sortField as keyof TestCaseDTO}
                     sortDir={sortDir}
                     page={currentPage}
                     pageSize={pageSize}
