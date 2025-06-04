@@ -1,9 +1,9 @@
-// src/components/testCase/AddTestCaseModal.tsx
 import React, { useState, useEffect } from 'react'
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap'
 import CreatableTagSelect, { Option } from '../common/CreatableTagSelect'
 import { createCase } from '../../api/testCaseApi'
-import type { CreateTestCaseDTO } from '../../types'
+import type { CreateTestCaseDTO, TestStepDTO } from '../../types'
+import TestCaseStepsEditor from './TestCaseStepsEditor'
 
 import {
     priorityOptions,
@@ -29,14 +29,13 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                                                projectId,
                                                                onSave,
                                                            }) => {
-    // Стейт без поля code
     const [form, setForm] = useState<Omit<CreateTestCaseDTO, 'code'>>({
         suiteId,
         projectId,
         title: '',
         preconditions: '',
         description: '',
-        steps: '',
+        steps: [],
         expectedResult: '',
         priority: '',
         owner: '',
@@ -58,7 +57,7 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
             title: '',
             preconditions: '',
             description: '',
-            steps: '',
+            steps: [],
             expectedResult: '',
             priority: '',
             owner: '',
@@ -87,7 +86,6 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
         const title = form.title?.trim()
         if (!title) return
 
-        // Формуємо DTO для API
         const dto: Omit<CreateTestCaseDTO, 'code'> = {
             ...form,
             suiteId,
@@ -95,7 +93,7 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
             title,
             preconditions: form.preconditions?.trim() || undefined,
             description: form.description?.trim() || undefined,
-            steps: form.steps?.trim() || undefined,
+            steps: form.steps ?? [],
             expectedResult: form.expectedResult?.trim() || undefined,
             priority: form.priority?.trim() || undefined,
             owner: form.owner?.trim() || undefined,
@@ -151,17 +149,16 @@ const AddTestCaseModal: React.FC<AddTestCaseModalProps> = ({
                                     onChange={handleChange('description')}
                                 />
                             </Form.Group>
-                            <Form.Group className="mb-3" controlId="add-steps">
-                                <Form.Label>Steps</Form.Label>
-                                <Form.Control
-                                    as="textarea"
-                                    rows={3}
-                                    value={form.steps || ''}
-                                    onChange={handleChange('steps')}
+                            <Form.Group className="mb-3">
+                                <TestCaseStepsEditor
+                                    steps={form.steps ?? []}
+                                    onChange={steps =>
+                                        setForm(prev => ({ ...prev, steps }))
+                                    }
                                 />
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="add-expectedResult">
-                                <Form.Label>Expected Result</Form.Label>
+                                <Form.Label>Expected Result (Summary, optional)</Form.Label>
                                 <Form.Control
                                     as="textarea"
                                     rows={2}

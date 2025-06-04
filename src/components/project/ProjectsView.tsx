@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Table, Button } from 'react-bootstrap';
 import { getProjectsPaged, createProject, updateProject, deleteProject } from '../../api/projectApi';
-import type { ProjectDTO } from '../../types/project';
+import type { ProjectDTO } from '../../types';
 import ProjectModal from './ProjectModal';
 import DeleteConfirmModal from '../common/DeleteConfirmModal';
 import Pagination from '../common/Pagination';

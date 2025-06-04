@@ -1,7 +1,7 @@
 // src/api/projectApi.ts
 import { api } from './axios';
 import type { PageResponse } from '../types';
-import type { ProjectDTO } from '../types/project';
+import type { ProjectDTO} from '../types';
 
 // ---- Залишаєш тільки одне оголошення ----
 export const getProjectsPaged = async (

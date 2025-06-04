@@ -1,6 +1,6 @@
-// src/types/index.ts
+// src/types/index.ts - Всі типи в одному файлі
 
-// ---- Загальні типи ----
+// ================ ЗАГАЛЬНІ ТИПИ ================
 export interface Page<T> {
     content: T[];
     totalElements: number;
@@ -8,16 +8,56 @@ export interface Page<T> {
     size: number;
     number: number;
 }
+
 export type PageResponse<T> = Page<T>;
 
-// ---- Test Case ----
+export interface ExecutionCommandDTO {
+    command: string;
+}
+
+// ================ PROJECT ТИПИ ================
+export interface ProjectDTO {
+    id: string;
+    name: string;
+    description?: string;
+    code?: string;
+    testCaseCount?: number;
+}
+
+export type Project = ProjectDTO;
+export type CreateProjectDTO = Omit<ProjectDTO, 'id' | 'testCaseCount'>;
+export type UpdateProjectDTO = Partial<CreateProjectDTO> & { id: string };
+
+// ================ TEST SUITE ТИПИ ================
+export interface TestSuiteDTO {
+    id: string;
+    name: string;
+    description?: string;
+    projectId: string;
+    parentId?: string | null;
+    children?: TestSuiteDTO[];
+    testCaseCount?: number;
+}
+
+export type TestSuite = TestSuiteDTO;
+export type CreateTestSuiteDTO = Omit<TestSuiteDTO, 'id' | 'children' | 'testCaseCount'>;
+export type UpdateTestSuiteDTO = Partial<CreateTestSuiteDTO> & { id: string };
+
+// ================ TEST CASE ТИПИ ================
+export interface TestStepDTO {
+    action: string;
+    expectedResult: string;
+    orderIndex: number;
+    id?: string;
+}
+
 export interface TestCaseDTO {
     id: string;
     code: string;
     title: string;
     description?: string;
     preconditions?: string;
-    steps?: string;
+    steps?: TestStepDTO[]; // ОНОВЛЕНО
     expectedResult?: string;
     priority?: string;
     tags?: string;
@@ -31,7 +71,10 @@ export interface TestCaseDTO {
     suiteId: string;
     projectId: string;
 }
+
 export type TestCase = TestCaseDTO;
+export type TestCasePage = Page<TestCaseDTO>;
+
 export type ColumnKey =
     | 'select'
     | 'code'
@@ -51,11 +94,10 @@ export type ColumnKey =
     | 'expectedResult'
     | 'useCase'
     | 'suiteId';
-// Якщо ще потрібно сортування/колонки по id — додай 'id' до ColumnKey
 
 export type CreateTestCaseDTO = Omit<TestCaseDTO, 'id' | 'code'> & { code?: string };
 export type UpdateTestCaseDTO = Partial<Omit<TestCaseDTO, 'id'>>;
-export type TestCasePage = Page<TestCaseDTO>;
+
 export interface BulkTestCaseRequestDTO {
     ids: string[];
     delete?: boolean;
@@ -66,6 +108,7 @@ export interface BulkTestCaseRequestDTO {
         { type: 'SET' | 'CLEAR' | 'FIND_REMOVE'; value?: string }
     >;
 }
+
 export interface ImportResultDto {
     created: number;
     errors: Array<{
@@ -74,39 +117,19 @@ export interface ImportResultDto {
     }>;
 }
 
-// ---- Test Suite ----
-export interface TestSuiteDTO {
-    id: string;
-    name: string;
-    description?: string;
-    parentId?: string | null;       // <- тепер може бути null!
-    projectId: string;
-    testCaseCount?: number;         // <- для підрахунку кейсів у папці
-    children?: TestSuiteDTO[];
-}
-export type CreateTestSuiteDTO = Omit<TestSuiteDTO, 'id' | 'children'> & { children?: TestSuiteDTO[] };
-
-// ---- Test Run ----
+// ================ TEST RUN ТИПИ ================
 export interface TestRunDTO {
     id: string;
+    projectId: string;
     name: string;
-    status: string;            // <- додано
-    startedAt: string;         // <- додано
-    projectId: string;         // <- додано (забери, якщо не потрібно!)
-    // ...додай інші поля, якщо треба
+    description?: string;
+    status: string;
+    startedAt: string;
+    completedAt?: string;
 }
+
 export type TestRun = TestRunDTO;
-export type CreateTestRunDTO = Omit<TestRunDTO, 'id'>;
+export type CreateTestRunDTO = Omit<TestRunDTO, 'id' | 'startedAt' | 'completedAt'>;
 export type UpdateTestRunDTO = Partial<Omit<TestRunDTO, 'id'>>;
 
-// ---- Project ----
-export interface ProjectDTO {
-    id: string;
-    name: string;
-    // ...інші поля
-}
-
-// ---- Інші типи ----
-export interface ExecutionCommandDTO {
-    command: string;
-}
+export type StatusType = 'Not Started' | 'In Progress' | 'Completed' | 'Blocked' | 'Aborted';

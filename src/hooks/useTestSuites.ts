@@ -1,39 +1,39 @@
-// src/hooks/useTestSuites.js
 import { useState, useEffect } from 'react';
-import { getSuitesTree, createSuite, updateSuite, deleteSuite } from '../api/testSuiteApi';
+import { fetchSuitesTree, createSuite, updateSuite, deleteSuite } from '../api/testSuiteApi';
+import type { TestSuiteDTO } from '../types';
 
-export default function useTestSuites() {
-  const [tree, setTree] = useState([]);
-  const [selectedSuite, setSelectedSuite] = useState(null);
-  const [expandedIds, setExpandedIds] = useState(new Set());
-  
+export default function useTestSuites(projectId: string) {
+  const [tree, setTree] = useState<TestSuiteDTO[]>([]);
+  const [selectedSuite, setSelectedSuite] = useState<TestSuiteDTO | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
-    loadTree();
-  }, []);
-  
+    loadTree().catch(console.error);
+  }, [projectId]);
+
   const loadTree = async () => {
     try {
-      const res = await getSuitesTree();
-      setTree(res.data || []);
+      const data = await fetchSuitesTree(projectId);
+      setTree(data || []);
     } catch (err) {
       console.error(err);
     }
   };
-  
-  const toggleExpand = (id) => {
+
+  const toggleExpand = (id: string) => {
     setExpandedIds(prev => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
   };
-  
-  const saveSuite = async (dto) => {
+
+  const saveSuite = async (dto: Partial<TestSuiteDTO>) => {
     try {
       if (dto.id) {
-        await updateSuite(dto.id, dto);
+        await createSuite(dto as Omit<TestSuiteDTO, 'id'>);
       } else {
-        await createSuite(dto);
+        await createSuite(dto as Omit<TestSuiteDTO, 'id'>);
       }
       await loadTree();
       return true;
@@ -42,13 +42,11 @@ export default function useTestSuites() {
       return false;
     }
   };
-  
-  const removeSuite = async (id) => {
+
+  const removeSuite = async (id: string) => {
     try {
       await deleteSuite(id);
       await loadTree();
-      
-      // Reset selected suite if it was deleted
       if (selectedSuite?.id === id) {
         setSelectedSuite(null);
       }
@@ -58,7 +56,7 @@ export default function useTestSuites() {
       return false;
     }
   };
-  
+
   return {
     suites: tree,
     selectedSuite,

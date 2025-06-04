@@ -1,7 +1,7 @@
 // src/components/project/ProjectModal.tsx
 import React, { FC, useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import type { ProjectDTO } from '../../types/project';
+import type { ProjectDTO } from '../../types';
 
 interface Props {
     show: boolean;

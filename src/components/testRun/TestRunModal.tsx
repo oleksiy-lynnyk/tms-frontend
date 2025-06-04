@@ -1,10 +1,7 @@
 // src/components/testRun/TestRunModal.tsx
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import {TestRun} from "@/types/testRun";
-
-
-type StatusType = 'Not Started' | 'In Progress' | 'Completed' | 'Blocked' | 'Aborted';
+import type { TestRun, StatusType } from '../../types'; // тепер працює!
 
 interface Props {
     show: boolean;
@@ -69,4 +66,5 @@ export default function TestRunModal({ show, run, onSave, onClose }: Props) {
         </Modal>
     );
 }
+
 

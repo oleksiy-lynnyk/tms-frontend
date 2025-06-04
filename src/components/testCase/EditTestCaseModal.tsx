@@ -1,12 +1,12 @@
 import React, { FC, useEffect, useState } from 'react'
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap'
 import { updateCase } from '../../api/testCaseApi'
-import type { TestCaseDTO } from '../../types'
+import type { TestCaseDTO, TestStepDTO } from '../../types'
 import CreatableTagSelect, { Option } from '../common/CreatableTagSelect'
+import TestCaseStepsEditor from './TestCaseStepsEditor'
 
 import {
     priorityOptions,
-    tagOptions,
     stateOptions,
     ownerOptions,
     typeOptions,
@@ -34,7 +34,7 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
 
     useEffect(() => {
         if (testCase) {
-            setForm({ ...testCase })
+            setForm({ ...testCase, steps: testCase.steps ?? [] })
             setTags(
                 testCase.tags
                     ? testCase.tags.split(',').map((t: string) => ({ label: t, value: t }))
@@ -63,7 +63,7 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
             title: form.title ?? '',
             preconditions: form.preconditions ?? '',
             description: form.description ?? '',
-            steps: form.steps ?? '',
+            steps: form.steps ?? [],
             expectedResult: form.expectedResult ?? '',
             priority: form.priority ?? '',
             owner: form.owner ?? '',
@@ -120,13 +120,12 @@ const EditTestCaseModal: FC<EditTestCaseModalProps> = ({
                                     onChange={handleChange('description')}
                                 />
                             </Form.Group>
-                            <Form.Group className="mb-3" controlId="edit-steps">
-                                <Form.Label>Test Steps</Form.Label>
-                                <Form.Control
-                                    as="textarea"
-                                    rows={3}
-                                    value={form.steps ?? ''}
-                                    onChange={handleChange('steps')}
+                            <Form.Group className="mb-3">
+                                <TestCaseStepsEditor
+                                    steps={form.steps as TestStepDTO[] ?? []}
+                                    onChange={steps =>
+                                        setForm(prev => ({ ...prev, steps }))
+                                    }
                                 />
                             </Form.Group>
                             <Form.Group className="mb-3" controlId="edit-expectedResult">
