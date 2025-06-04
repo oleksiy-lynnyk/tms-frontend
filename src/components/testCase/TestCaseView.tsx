@@ -8,7 +8,6 @@ import BulkEditTestCaseModal from './BulkEditTestCaseModal';
 import CopyTestCaseModal from './CopyTestCaseModal';
 import MoveTestCaseModal from './MoveTestCaseModal';
 import ImportTestCasesModal from './ImportTestCasesModal';
-import AppPagination from '../common/Pagination';
 import ManageColumnsModal from './ManageColumnsModal';
 
 import type { TestCaseDTO } from '../../types';
@@ -26,7 +25,7 @@ const COLUMNS_STORAGE_KEY = 'tmsVisibleColumns';
 
 const getDefaultColumns = (): VisibleColumns => ({
     select: true,
-    code: true,      // ← id видалено, code — головний
+    code: true,
     title: true,
     priority: true,
     owner: true,
@@ -54,7 +53,6 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
     const [cases, setCases] = useState<TestCaseDTO[]>([]);
     const [search, setSearch] = useState('');
     const [visibleCols, setVisibleCols] = useState<VisibleColumns>(getDefaultColumns());
-    // Сортировка по code (або title)
     const [sortField, setSortField] = useState<ColumnKey>('code');
     const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -225,8 +223,7 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
     };
 
     // Pagination
-    const startItem = totalElements > 0 ? currentPage * pageSize + 1 : 0;
-    const endItem = Math.min((currentPage + 1) * pageSize, totalElements);
+    // Передаємо у Table (footer) — тепер глобально, не окремим div!
 
     return (
         <div className="d-flex flex-column h-100" style={{ width: '100%' }}>
@@ -263,75 +260,68 @@ const TestCaseView: React.FC<Props> = ({ suite, projectId }) => {
                     onSort={handleSort}
                     sortField={sortField === 'select' ? 'code' : sortField}
                     sortDir={sortDir}
-                />
-            </div>
-
-            <div className="mt-2 text-center text-muted">
-                {`Showing ${startItem} to ${endItem} of ${totalElements} results`}
-            </div>
-
-            <div className="mb-3">
-                <AppPagination
-                    currentPage={currentPage}
+                    page={currentPage}
+                    pageSize={pageSize}
+                    total={totalElements}
                     totalPages={totalPages}
                     onPageChange={setCurrentPage}
                 />
-
-                {/* Модалки для CRUD — все як було */}
-                <AddTestCaseModal
-                    show={showAdd}
-                    onClose={() => setShowAdd(false)}
-                    suiteId={suite?.id ?? ''}
-                    projectId={projectId}
-                    onSave={handleAddSave}
-                />
-                <EditTestCaseModal
-                    show={showEdit}
-                    onClose={() => setShowEdit(false)}
-                    onSave={handleAddSave}
-                    testCase={currentCase}
-                    suiteId={suite?.id ?? ''}
-                />
-                <DeleteConfirmModal
-                    show={showDel}
-                    onClose={() => setShowDel(false)}
-                    onConfirm={handleDelete}
-                    itemName={currentCase?.code}
-                />
-                <BulkEditTestCaseModal
-                    show={showBulkEdit}
-                    onClose={() => setShowBulkEdit(false)}
-                    onSave={handleBulkSave}
-                    selectedIds={selectedIds}
-                />
-                <CopyTestCaseModal
-                    show={showBulkCopy}
-                    onClose={() => setShowBulkCopy(false)}
-                    onCopy={handleBulkCopy}
-                    selectedCount={selectedIds.size}
-                    projectId={projectId}
-                />
-                <MoveTestCaseModal
-                    show={showBulkMove}
-                    onClose={() => setShowBulkMove(false)}
-                    onMove={handleBulkMove}
-                    selectedCount={selectedIds.size}
-                    projectId={projectId}
-                />
-                <DeleteConfirmModal
-                    show={showBulkDelete}
-                    onClose={() => setShowBulkDelete(false)}
-                    onConfirm={handleBulkDelete}
-                    title="Delete Test Cases"
-                    body={`Are you sure you want to delete ${selectedIds.size} test case${selectedIds.size > 1 ? 's' : ''}? This action cannot be undone.`}
-                />
-                <ImportTestCasesModal
-                    show={showImport}
-                    onClose={() => setShowImport(false)}
-                    onImported={fetchCases}
-                    suiteId={suite?.id ?? ''}
-                />
             </div>
+
+            {/* Модалки для CRUD — все як було */}
+            <AddTestCaseModal
+                show={showAdd}
+                onClose={() => setShowAdd(false)}
+                suiteId={suite?.id ?? ''}
+                projectId={projectId}
+                onSave={handleAddSave}
+            />
+            <EditTestCaseModal
+                show={showEdit}
+                onClose={() => setShowEdit(false)}
+                onSave={handleAddSave}
+                testCase={currentCase}
+                suiteId={suite?.id ?? ''}
+            />
+            <DeleteConfirmModal
+                show={showDel}
+                onClose={() => setShowDel(false)}
+                onConfirm={handleDelete}
+                itemName={currentCase?.code}
+            />
+            <BulkEditTestCaseModal
+                show={showBulkEdit}
+                onClose={() => setShowBulkEdit(false)}
+                onSave={handleBulkSave}
+                selectedIds={selectedIds}
+            />
+            <CopyTestCaseModal
+                show={showBulkCopy}
+                onClose={() => setShowBulkCopy(false)}
+                onCopy={handleBulkCopy}
+                selectedCount={selectedIds.size}
+                projectId={projectId}
+            />
+            <MoveTestCaseModal
+                show={showBulkMove}
+                onClose={() => setShowBulkMove(false)}
+                onMove={handleBulkMove}
+                selectedCount={selectedIds.size}
+                projectId={projectId}
+            />
+            <DeleteConfirmModal
+                show={showBulkDelete}
+                onClose={() => setShowBulkDelete(false)}
+                onConfirm={handleBulkDelete}
+                title="Delete Test Cases"
+                body={`Are you sure you want to delete ${selectedIds.size} test case${selectedIds.size > 1 ? 's' : ''}? This action cannot be undone.`}
+            />
+            <ImportTestCasesModal
+                show={showImport}
+                onClose={() => setShowImport(false)}
+                onImported={fetchCases}
+                suiteId={suite?.id ?? ''}
+            />
         </div>
     );
 };
