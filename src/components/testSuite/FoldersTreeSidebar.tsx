@@ -27,9 +27,7 @@ export interface Props {
     collapsed: boolean;
 }
 
-const MIN_WIDTH = 200
-const MAX_WIDTH = 480
-
+// Для кастомного трігера меню (не міняємо)
 const CustomToggle = React.forwardRef<
     HTMLButtonElement,
     { onClick(e: ReactMouseEvent<HTMLButtonElement>): void; children?: React.ReactNode }
@@ -47,6 +45,19 @@ const CustomToggle = React.forwardRef<
 ))
 CustomToggle.displayName = 'CustomToggle'
 
+// Для модалки: плоский масив
+function flattenSuites(tree: TestSuiteDTO[]): TestSuiteDTO[] {
+    const result: TestSuiteDTO[] = []
+    function recur(nodes: TestSuiteDTO[]) {
+        for (const n of nodes) {
+            result.push(n)
+            if (n.children && n.children.length) recur(n.children)
+        }
+    }
+    recur(tree)
+    return result
+}
+
 const FoldersTreeSidebar: FC<Props> = ({
                                            projectId,
                                            selected,
@@ -55,7 +66,8 @@ const FoldersTreeSidebar: FC<Props> = ({
                                            refreshFlag,
                                            collapsed,
                                        }) => {
-    const [suites, setSuites] = useState<TestSuiteDTO[]>([])
+    const [tree, setTree] = useState<TestSuiteDTO[]>([])
+    const [flatSuites, setFlatSuites] = useState<TestSuiteDTO[]>([]) // для модалки
     const [loading, setLoading] = useState(false)
     const [expanded, setExpanded] = useState<Set<string>>(new Set())
     const [modalSuite, setModalSuite] = useState<TestSuiteDTO | undefined>()
@@ -63,11 +75,13 @@ const FoldersTreeSidebar: FC<Props> = ({
     const [width, setWidth] = useState(240)
     const resizingRef = useRef(false)
 
+    // Фетчимо дерево від бека — children всередині!
     const fetchSuites = async () => {
         setLoading(true);
         try {
-            const res = await fetchSuitesTree(projectId); // ← передаєш projectId!
-            setSuites(res);
+            const res = await fetchSuitesTree(projectId);
+            setTree(res || [])
+            setFlatSuites(flattenSuites(res || []))
         } finally {
             setLoading(false);
         }
@@ -78,12 +92,11 @@ const FoldersTreeSidebar: FC<Props> = ({
         return () => {
             resizingRef.current = false
         }
-    }, [refreshFlag])
+    }, [refreshFlag, projectId])
 
-// FoldersTreeSidebar.tsx (після useEffect, який fetchSuites)
+    // Автовиділення першого вузла якщо selected зник/не знайдено в дереві
     useEffect(() => {
-        if (suites.length > 0 && (!selected || !findSuiteById(suites, selected?.id))) {
-            // Функція шукає перший leaf-сьют
+        if (tree.length > 0 && (!selected || !findSuiteById(tree, selected?.id))) {
             const findFirst = (nodes: TestSuiteDTO[]): TestSuiteDTO => {
                 let current = nodes[0];
                 while (current.children && current.children.length > 0) {
@@ -91,12 +104,11 @@ const FoldersTreeSidebar: FC<Props> = ({
                 }
                 return current;
             };
-            onSelectSuite(findFirst(suites));
+            onSelectSuite(findFirst(tree));
         }
         // eslint-disable-next-line
-    }, [suites]);
+    }, [tree]);
 
-// Додатково (допоміжна функція)
     function findSuiteById(nodes: TestSuiteDTO[], id: string | undefined): boolean {
         if (!id) return false;
         for (const node of nodes) {
@@ -117,32 +129,35 @@ const FoldersTreeSidebar: FC<Props> = ({
         })
     }
 
+    // Рендер вузла (рекурсія)
     const renderNode = (node: TestSuiteDTO, level = 0) => {
         const isOpen = expanded.has(node.id)
         const isSelected = selected?.id === node.id
 
         return (
-            <div
-                key={node.id}
-                className={`suite-node${isSelected ? ' selected' : ''}`}
-                style={{ paddingLeft: level * 16 }}
-            >
-                <div className="suite-row">
-                    <span className="suite-icon" onClick={() => toggle(node.id)}>
+            <div key={node.id}>
+                <div
+                    className={`suite-row${isSelected ? ' suite-row-selected' : ''}`}
+                    style={{ paddingLeft: level * 16, cursor: 'pointer', userSelect: 'none' }}
+                    onClick={() => onSelectSuite(node)}
+                >
+                    <span
+                        className="suite-icon"
+                        onClick={e => {
+                            e.stopPropagation();
+                            if (node.children?.length) toggle(node.id)
+                        }}
+                        style={{ cursor: node.children?.length ? 'pointer' : 'default' }}
+                    >
                         {node.children?.length
                             ? isOpen
                                 ? <FolderOpenIcon size={16} />
                                 : <FolderIcon size={16} />
                             : <FileIcon size={16} />}
                     </span>
-                    <span
-                        className="suite-name"
-                        title={`${node.name} (${node.testCaseCount ?? 0})`}
-                        onClick={() => onSelectSuite(node)}
-                    >
-                        {node.name} ({node.testCaseCount ?? 0})
+                    <span className="suite-name" style={{ marginLeft: 4 }}>
+                        {node.name} <span className="suite-counter">({node.testCaseCount ?? 0})</span>
                     </span>
-
                     <Dropdown drop="end" className="suite-menu" onClick={e => e.stopPropagation()}>
                         <Dropdown.Toggle as={CustomToggle}>
                             <MoreIcon size={16} />
@@ -161,15 +176,16 @@ const FoldersTreeSidebar: FC<Props> = ({
                         </Dropdown.Menu>
                     </Dropdown>
                 </div>
-
-                {isOpen && node.children?.map(child => renderNode(child, level + 1))}
+                {/* Рендеримо дочірні вузли */}
+                {isOpen && node.children && node.children.length > 0 &&
+                    node.children.map(child => renderNode(child, level + 1))
+                }
             </div>
         )
     }
 
     return (
         <div className="sidebar-container" style={{ width: collapsed ? 64 : width }}>
-            {/* Додаємо шапку з кнопкою "+ New" */}
             <div className="sidebar-header d-flex align-items-center justify-content-between">
                 <h5 className="m-0">Folders</h5>
                 <Button
@@ -183,18 +199,17 @@ const FoldersTreeSidebar: FC<Props> = ({
                     + New
                 </Button>
             </div>
-
             <div className="sidebar-content">
                 {loading
                     ? <div className="text-center py-4"><Spinner animation="border" /></div>
-                    : suites.map(s => renderNode(s))
+                    : tree.map(s => renderNode(s))
                 }
             </div>
             <div className="sidebar-resizer" onMouseDown={() => { resizingRef.current = true }} />
             <SuiteModal
                 show={showModal}
                 suite={modalSuite}
-                allSuites={suites}
+                allSuites={flatSuites}
                 onClose={() => setShowModal(false)}
                 onSave={async dto => {
                     const { id, ...payload } = dto
