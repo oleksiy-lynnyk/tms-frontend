@@ -121,6 +121,7 @@ export interface ImportResultDto {
 export interface TestRunDTO {
     id: string;
     projectId: string;
+    code: string;
     name: string;
     description?: string;
     status: string;
@@ -133,3 +134,17 @@ export type CreateTestRunDTO = Omit<TestRunDTO, 'id' | 'startedAt' | 'completedA
 export type UpdateTestRunDTO = Partial<Omit<TestRunDTO, 'id'>>;
 
 export type StatusType = 'Not Started' | 'In Progress' | 'Completed' | 'Blocked' | 'Aborted';
+
+// Короткий (для assign/select)
+export interface UserShortDTO {
+    id: string;
+    name: string;
+}
+
+// Повний (для CRUD, таблиці, створення/редагування)
+export interface UserFullDTO {
+    id: string;
+    name: string;
+    email: string;
+    role: string; // "ADMIN" | "QA" | "VIEWER"
+}

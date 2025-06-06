@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import {
     getRunsByProject,
@@ -10,30 +10,32 @@ import {
 import type { TestRunDTO } from '../../types';
 import TestRunTable from './TestRunTable';
 import TestRunModal from './TestRunModal';
-import { Button } from 'react-bootstrap';
+import PageHeader from '../common/PageHeader';
 
 function TestRunsView() {
-    const { id: projectId } = useParams<{ id: string }>();
+    const { projectId } = useParams<{ projectId: string }>();
     const [runs, setRuns] = useState<TestRunDTO[]>([]);
     const [loading, setLoading] = useState(false);
     const [modalRun, setModalRun] = useState<Partial<TestRunDTO> | undefined>(undefined);
     const [showModal, setShowModal] = useState(false);
+    const [search, setSearch] = useState('');
 
-    const fetchRuns = async () => {
+    const fetchRuns = useCallback(async () => {
         setLoading(true);
         try {
             if (!projectId) return;
-            const resp = await getRunsByProject(projectId);
+            const resp = await getRunsByProject(projectId, { page: 0, size: 50, sort: 'startedAt,desc' });
             setRuns(resp.data.content);
+        } catch (err) {
+            console.error('FETCH RUNS ERROR:', err);
         } finally {
             setLoading(false);
         }
-    };
+    }, [projectId]);
 
     useEffect(() => {
         fetchRuns();
-        // eslint-disable-next-line
-    }, [projectId]);
+    }, [projectId, fetchRuns]);
 
     const handleSave = async (dto: Partial<TestRunDTO>) => {
         if (!projectId) return;
@@ -56,20 +58,28 @@ function TestRunsView() {
         await fetchRuns();
     };
 
+    // Простий фільтр (можеш замінити на пошук на бекенді)
+    const filteredRuns = runs.filter(run =>
+        run.name?.toLowerCase().includes(search.toLowerCase()) ||
+        (run.code && run.code.toLowerCase().includes(search.toLowerCase()))
+    );
+
+
     return (
         <div>
-            <div className="d-flex justify-content-between align-items-center mb-2">
-                <h2>Test Runs</h2>
-                <Button onClick={() => { setModalRun(undefined); setShowModal(true); }}>
-                    + New Test Run
-                </Button>
-            </div>
+            <PageHeader
+                title="Тест-рани"
+                onSearch={setSearch}
+                searchPlaceholder="Пошук тест-рана..."
+                addButtonLabel="Додати тест-ран"
+                onAdd={() => { setModalRun(undefined); setShowModal(true); }}
+            />
 
             {loading ? (
                 <div>Loading...</div>
             ) : (
                 <TestRunTable
-                    runs={runs}
+                    runs={filteredRuns}
                     onEdit={run => { setModalRun(run); setShowModal(true); }}
                     onDelete={handleDelete}
                     onClone={handleClone}
