@@ -1,6 +1,6 @@
 // src/api/userApi.ts
 import { api } from './axios'; // або свій http-клієнт
-import type { UserFullDTO } from '../types';
+import type {UserFullDTO, UserShortDTO} from '../types';
 
 export const getUsersPaged = async (search = '', page = 0, size = 20) => {
     const params: any = { page, size };
@@ -26,4 +26,9 @@ export const updateUser = async (id: string, dto: Omit<UserFullDTO, 'id'>) => {
 
 export const deleteUser = async (id: string) => {
     await api.delete(`/users/${id}`);
+};
+
+export const getUsersShort = async (): Promise<UserShortDTO[]> => {
+    const { data } = await api.get('/users/short');
+    return data;
 };

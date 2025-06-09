@@ -224,3 +224,24 @@ body {
 .bs-btn-primary:hover {
     background: #185cd1;
 }
+/* src/styles/global.css */
+
+.sidebar-btn {
+    font-size: 14px;
+    width: 100%;
+    text-align: left;
+}
+
+.sidebar-btn.active {
+    background-color: var(--bs-secondary);
+    color: white;
+}
+.app-table {
+    font-size: 14px;
+    font-family: Avenir, Helvetica, Arial, sans-serif;
+}
+
+.app-font {
+    font-size: 14px;
+    font-family: Avenir, Helvetica, Arial, sans-serif;
+}

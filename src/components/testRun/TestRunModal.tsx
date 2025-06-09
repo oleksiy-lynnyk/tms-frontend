@@ -1,70 +1,75 @@
 // src/components/testRun/TestRunModal.tsx
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
-import type { TestRun, StatusType } from '../../types'; // тепер працює!
+import type { TestRunDTO } from '../../types';
+import UserSelect from '../common/UserSelect';
+import StatusSelect from '../common/StatusSelect';
 
 interface Props {
     show: boolean;
-    run?: Partial<TestRun>;
-    onSave: (dto: Partial<TestRun>) => void;
     onClose: () => void;
+    onSave: (data: Partial<TestRunDTO>) => Promise<void>;
+    formData: Partial<TestRunDTO>;
+    setFormData: React.Dispatch<React.SetStateAction<Partial<TestRunDTO>>>;
 }
 
-const STATUS_OPTIONS: StatusType[] = [
-    'Not Started', 'In Progress', 'Completed', 'Blocked', 'Aborted'
-];
+const TestRunModal: React.FC<Props> = ({ show, onClose, onSave, formData, setFormData }) => {
+    const handleChange = (field: keyof TestRunDTO, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
 
-export default function TestRunModal({ show, run, onSave, onClose }: Props) {
-    const [name, setName] = useState(run?.name || '');
-    const [description, setDescription] = useState(run?.description || '');
-    const [status, setStatus] = useState<StatusType>(run?.status as StatusType || 'Not Started');
-
-    useEffect(() => {
-        setName(run?.name || '');
-        setDescription(run?.description || '');
-        setStatus(run?.status as StatusType || 'Not Started');
-    }, [run, show]);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSave({
-            ...run,
-            name,
-            description,
-            status
-        });
+    const handleSubmit = async () => {
+        await onSave(formData);
     };
 
     return (
         <Modal show={show} onHide={onClose}>
             <Modal.Header closeButton>
-                <Modal.Title>{run?.id ? 'Edit Test Run' : 'Create Test Run'}</Modal.Title>
+                <Modal.Title>{formData.id ? 'Edit Test Run' : 'New Test Run'}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <Form onSubmit={handleSubmit}>
+                <Form>
                     <Form.Group className="mb-3">
-                        <Form.Label>Name*</Form.Label>
-                        <Form.Control value={name} onChange={e => setName(e.target.value)} required />
+                        <Form.Label>Name</Form.Label>
+                        <Form.Control
+                            value={formData.name || ''}
+                            onChange={e => handleChange('name', e.target.value)}
+                        />
                     </Form.Group>
+
                     <Form.Group className="mb-3">
                         <Form.Label>Description</Form.Label>
-                        <Form.Control as="textarea" value={description} onChange={e => setDescription(e.target.value)} />
+                        <Form.Control
+                            as="textarea"
+                            value={formData.description || ''}
+                            onChange={e => handleChange('description', e.target.value)}
+                        />
                     </Form.Group>
+
                     <Form.Group className="mb-3">
                         <Form.Label>Status</Form.Label>
-                        <Form.Select value={status} onChange={e => setStatus(e.target.value as StatusType)}>
-                            {STATUS_OPTIONS.map(opt => (
-                                <option key={opt} value={opt}>{opt}</option>
-                            ))}
-                        </Form.Select>
+                        <StatusSelect
+                            value={formData.status || ''}
+                            onChange={value => handleChange('status', value)}
+                        />
                     </Form.Group>
-                    <Button variant="primary" type="submit">
-                        {run?.id ? 'Save Changes' : 'Create'}
-                    </Button>
+
+                    <UserSelect
+                        value={formData.assignedTo || ''}
+                        onChange={value => handleChange('assignedTo', value)}
+                    />
                 </Form>
             </Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={onClose}>
+                    Cancel
+                </Button>
+                <Button variant="primary" onClick={handleSubmit}>
+                    Save
+                </Button>
+            </Modal.Footer>
         </Modal>
     );
-}
+};
 
-
+export default TestRunModal;

@@ -127,7 +127,12 @@ export interface TestRunDTO {
     status: string;
     startedAt: string;
     completedAt?: string;
+
+    // 🆕 Додай ці поля:
+    assignedTo?: string;         // UUID
+    assignedToName?: string;     // Ім'я користувача
 }
+
 
 export type TestRun = TestRunDTO;
 export type CreateTestRunDTO = Omit<TestRunDTO, 'id' | 'startedAt' | 'completedAt'>;
@@ -147,4 +152,38 @@ export interface UserFullDTO {
     name: string;
     email: string;
     role: string; // "ADMIN" | "QA" | "VIEWER"
+}
+
+export interface EnvironmentDTO {
+    id?: string;
+    projectId: string;
+    title: string;
+    slug: string;
+    description?: string;
+    host?: string;
+}
+
+export interface VersionDTO {
+    id?: string;
+    projectId: string;
+    title: string;
+    slug: string;
+    description?: string;
+}
+
+// ================ CONFIGURATION ТИПИ ================
+export interface ConfigurationDTO {
+    id: string;
+    name: string;
+    projectId: string;
+}
+export interface ConfigurationDTO {
+    id: string;
+    projectId: string;
+    title: string;
+    slug: string;
+    description?: string;
+    os?: string;
+    browser?: string;
+    device?: string;
 }

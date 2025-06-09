@@ -1,103 +1,97 @@
-import React, { useState, useEffect, useCallback } from 'react';
+// src/components/testRun/TestRunsView.tsx
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import EntityToolbar from '../common/EntityToolbar';
+import TestRunModal from './TestRunModal';
+import TestRunTable from './TestRunTable';
 import {
     getRunsByProject,
     createRun,
-    updateRun,
     deleteRun,
-    cloneRun,
 } from '../../api/testRunApi';
-import type { TestRunDTO } from '../../types';
-import TestRunTable from './TestRunTable';
-import TestRunModal from './TestRunModal';
-import PageHeader from '../common/PageHeader';
+import type { TestRunDTO, Page } from '../../types';
 
-function TestRunsView() {
+const TestRunsView: React.FC = () => {
     const { projectId } = useParams<{ projectId: string }>();
-    const [runs, setRuns] = useState<TestRunDTO[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [modalRun, setModalRun] = useState<Partial<TestRunDTO> | undefined>(undefined);
+    const [items, setItems] = useState<TestRunDTO[]>([]);
     const [showModal, setShowModal] = useState(false);
-    const [search, setSearch] = useState('');
+    const [formData, setFormData] = useState<Partial<TestRunDTO>>({
+        name: '',
+        description: '',
+    });
+    const [searchQuery, setSearchQuery] = useState('');
+    const [page, setPage] = useState(0);
+    const pageSize = 10;
 
-    const fetchRuns = useCallback(async () => {
-        setLoading(true);
-        try {
-            if (!projectId) return;
-            const resp = await getRunsByProject(projectId, { page: 0, size: 50, sort: 'startedAt,desc' });
-            setRuns(resp.data.content);
-        } catch (err) {
-            console.error('FETCH RUNS ERROR:', err);
-        } finally {
-            setLoading(false);
-        }
-    }, [projectId]);
+    const loadData = async () => {
+        if (!projectId) return;
+        const response = await getRunsByProject(projectId);
+        setItems(response.data.content || []);
+    };
+
+    const handleSave = async (data: Partial<TestRunDTO>) => {
+        if (!projectId || !data.name) return;
+        await createRun({ ...data, projectId });
+        await loadData();
+        setShowModal(false);
+        setFormData({ name: '', description: '' });
+    };
+
+    const handleDelete = async (id: string) => {
+        await deleteRun(id);
+        await loadData();
+    };
+
+    const handleEdit = (run: TestRunDTO) => {
+        setFormData(run);
+        setShowModal(true);
+    };
 
     useEffect(() => {
-        fetchRuns();
-    }, [projectId, fetchRuns]);
+        loadData();
+    }, [projectId]);
 
-    const handleSave = async (dto: Partial<TestRunDTO>) => {
-        if (!projectId) return;
-        if (dto.id) {
-            await updateRun(dto.id, dto);
-        } else {
-            await createRun({ ...dto, projectId });
-        }
-        setShowModal(false);
-        await fetchRuns();
-    };
-
-    const handleDelete = async (run: TestRunDTO) => {
-        await deleteRun(run.id);
-        await fetchRuns();
-    };
-
-    const handleClone = async (run: TestRunDTO) => {
-        await cloneRun(run.id);
-        await fetchRuns();
-    };
-
-    // Простий фільтр (можеш замінити на пошук на бекенді)
-    const filteredRuns = runs.filter(run =>
-        run.name?.toLowerCase().includes(search.toLowerCase()) ||
-        (run.code && run.code.toLowerCase().includes(search.toLowerCase()))
+    const filtered = items.filter(i =>
+        i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (i.description || '').toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const paged = filtered.slice(page * pageSize, (page + 1) * pageSize);
+    const totalPages = Math.ceil(filtered.length / pageSize);
 
     return (
-        <div>
-            <PageHeader
-                title="Тест-рани"
-                onSearch={setSearch}
-                searchPlaceholder="Пошук тест-рана..."
-                addButtonLabel="Додати тест-ран"
-                onAdd={() => { setModalRun(undefined); setShowModal(true); }}
+        <div className="p-3 w-100 d-flex flex-column h-100">
+            <EntityToolbar
+                title="Test Runs"
+                onAdd={() => {
+                    setFormData({ name: '', description: '' });
+                    setShowModal(true);
+                }}
+                onSearch={setSearchQuery}
+                searchPlaceholder="Пошук тестових прогонів..."
+                addButtonLabel="+ Add Run"
             />
 
-            {loading ? (
-                <div>Loading...</div>
-            ) : (
-                <TestRunTable
-                    runs={filteredRuns}
-                    onEdit={run => { setModalRun(run); setShowModal(true); }}
-                    onDelete={handleDelete}
-                    onClone={handleClone}
-                    onView={run => {
-                        // тут можна відкрити модалку перегляду чи навідати інший роут
-                        console.log('View details for run', run.id);
-                    }}
-                />
-            )}
+            <TestRunTable
+                items={paged}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+                page={page}
+                pageSize={pageSize}
+                total={filtered.length}
+                totalPages={totalPages}
+                onPageChange={setPage}
+            />
 
             <TestRunModal
                 show={showModal}
-                run={modalRun}
-                onSave={handleSave}
                 onClose={() => setShowModal(false)}
+                onSave={handleSave}
+                formData={formData}
+                setFormData={setFormData}
             />
         </div>
     );
-}
+};
 
 export default TestRunsView;

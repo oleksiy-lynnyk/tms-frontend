@@ -1,26 +1,28 @@
+// src/components/project/ProjectPage.tsx
 import React, { useState } from 'react';
 import { useParams, Routes, Route, Navigate } from 'react-router-dom';
-import ProjectMenu from './ProjectMenu';
 import FoldersTreeSidebar from '../testSuite/FoldersTreeSidebar';
 import TestCaseView from '../testCase/TestCaseView';
 import TestRunsView from '../testRun/TestRunsView';
+import EnvironmentsView from '../environment/EnvironmentsView';
+import ConfigurationsView from '../configuration/ConfigurationsView';
+import VersionsView from '../version/VersionsView';
+import { routes } from '../../routes';
 import type { TestSuiteDTO } from '../../types';
 
 const ProjectPage: React.FC = () => {
     const { projectId } = useParams<{ projectId: string }>();
-
     const [selectedSuite, setSelectedSuite] = useState<TestSuiteDTO | null>(null);
     const [sidebarRefreshFlag, setSidebarRefreshFlag] = useState(0);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     if (!projectId) {
-        return <Navigate to="/projects" replace />;
+        return <Navigate to={routes.projects} replace />;
     }
 
     return (
-        <div className="app-container">
-            <ProjectMenu />
-            <div className="content-container">
+        <div className="app-container w-100">
+            <div className="content-container w-100">
                 <Routes>
                     <Route
                         path="cases"
@@ -34,30 +36,16 @@ const ProjectPage: React.FC = () => {
                                     refreshFlag={sidebarRefreshFlag}
                                     collapsed={sidebarCollapsed}
                                 />
-                                {/* Контейнер для кейсів */}
                                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
                                     <TestCaseView suite={selectedSuite} projectId={projectId} />
                                 </div>
                             </div>
                         }
                     />
-                    <Route
-                        path="suites"
-                        element={
-                            <FoldersTreeSidebar
-                                projectId={projectId}
-                                selected={selectedSuite}
-                                onSelectSuite={setSelectedSuite}
-                                onDeleteSuite={() => setSelectedSuite(null)}
-                                refreshFlag={sidebarRefreshFlag}
-                                collapsed={sidebarCollapsed}
-                            />
-                        }
-                    />
-                    <Route
-                        path="test-runs"
-                        element={<TestRunsView />}
-                    />
+                    <Route path="test-runs" element={<TestRunsView />} />
+                    <Route path="environments" element={<EnvironmentsView />} />
+                    <Route path="configurations" element={<ConfigurationsView />} />
+                    <Route path="versions" element={<VersionsView />} />
                     <Route index element={<Navigate to="cases" replace />} />
                 </Routes>
             </div>

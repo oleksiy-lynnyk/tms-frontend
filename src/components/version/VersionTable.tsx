@@ -1,14 +1,13 @@
-// src/components/testRun/TestRunTable.tsx
+// src/components/version/VersionTable.tsx
 import React from 'react';
-import type { TestRunDTO } from '../../types';
+import type { VersionDTO } from '../../types';
 import type { ColumnDefinition } from '../common/GenericEntityTable';
 import GenericEntityTable from '../common/GenericEntityTable';
-import type { ReactNode } from 'react';
 
 interface Props {
-    items: TestRunDTO[];
+    items: VersionDTO[];
     onDelete: (id: string) => void;
-    onEdit?: (item: TestRunDTO) => void;
+    onEdit?: (item: VersionDTO) => void;
     page: number;
     pageSize: number;
     total: number;
@@ -16,34 +15,13 @@ interface Props {
     onPageChange: (p: number) => void;
 }
 
-interface ExtendedColumnDefinition<T> extends ColumnDefinition<T> {
-    render?: (value: any, row: T) => ReactNode;
-}
-
-const columns: ExtendedColumnDefinition<TestRunDTO>[] = [
-    { key: 'name', label: 'Name', sortable: true },
+const columns: ColumnDefinition<VersionDTO>[] = [
+    { key: 'title', label: 'Title', sortable: true },
+    { key: 'slug', label: 'Slug', sortable: true },
     { key: 'description', label: 'Description', sortable: true, className: 'text-muted' },
-    {
-        key: 'status',
-        label: 'Status',
-        sortable: true,
-        render: (value: string) => {
-            let color = 'secondary';
-            if (value === 'COMPLETED') color = 'success';
-            else if (value === 'FAILED') color = 'danger';
-            else if (value === 'IN_PROGRESS') color = 'primary';
-            return <span className={`badge bg-${color}`}>{value}</span>;
-        }
-    },
-    {
-        key: 'assignedTo',
-        label: 'Assigned To',
-        sortable: false,
-        render: (_: string, row: TestRunDTO) => row.assignedToName || '—'
-    }
 ];
 
-const TestRunTable: React.FC<Props> = ({
+const VersionTable: React.FC<Props> = ({
                                            items,
                                            onDelete,
                                            onEdit,
@@ -68,4 +46,4 @@ const TestRunTable: React.FC<Props> = ({
     );
 };
 
-export default TestRunTable;
+export default VersionTable;
