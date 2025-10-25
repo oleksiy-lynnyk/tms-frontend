@@ -16,7 +16,13 @@
     "checkJs": false,
     "baseUrl": "src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["*"],
+      "api/*": ["api/*"],
+      "components/*": ["components/*"],
+      "entities/*": ["entities/*"],
+      "constants/*": ["constants/*"],
+      "hooks/*": ["hooks/*"],
+      "utils/*": ["utils/*"]
     }
   },
   "include": ["src"],

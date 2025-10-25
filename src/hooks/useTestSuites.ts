@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { fetchSuitesTree, createSuite, updateSuite, deleteSuite } from '../api/testSuiteApi';
-import type { TestSuiteDTO } from '../types';
+import { fetchSuitesTree, createSuite, updateSuite, deleteSuite } from '../entities/testSuite/api/testSuiteApi';
+import type { TestSuiteDTO } from '@/entities/testSuite/types/testSuiteTypes';
 
 export default function useTestSuites(projectId: string) {
   const [tree, setTree] = useState<TestSuiteDTO[]>([]);

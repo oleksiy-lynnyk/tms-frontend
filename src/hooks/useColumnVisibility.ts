@@ -1,10 +1,9 @@
-// src/hooks/useColumnVisibility.js
-import { useState, useEffect } from 'react';
-import {ColumnKey} from "@/types";
+import { useState } from 'react';
+// Якщо є тип ColumnKey:
+import type { ColumnKey } from '../types';
 
-const defaultColumns = {
-    // id: true,               // ← Видалено!
-    code: true,                // ← Додаємо як основну колонку
+const defaultColumns: Record<string, boolean> = {
+    code: true,
     title: true,
     priority: true,
     owner: true,
@@ -22,7 +21,8 @@ export default function useColumnVisibility() {
         return raw ? JSON.parse(raw) : defaultColumns;
     });
 
-    const toggleColumn = (key: ColumnKey) => {
+    // Якщо тип є — використовуй ColumnKey, якщо ні — string
+    const toggleColumn = (key: string) => {
         const updated = { ...visibleColumns, [key]: !visibleColumns[key] };
         setVisibleColumns(updated);
         localStorage.setItem('visibleColumns', JSON.stringify(updated));

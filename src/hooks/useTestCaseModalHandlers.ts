@@ -1,7 +1,7 @@
 // src/hooks/useTestCaseModals.js
 import { useState } from 'react';
-import { deleteCase } from '../api/testCaseApi';
-import type { TestCaseDTO } from '@/types';
+import { deleteCase } from '../entities/testCase/api/testCaseApi';
+import type { TestCaseDTO } from '@/entities/testCase/types/testCaseTypes';
 
 export default function useTestCaseModals() {
   const [selectedCase, setSelectedCase] = useState<TestCaseDTO | null>(null);

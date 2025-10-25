@@ -1,45 +1,67 @@
-// src/components/layout/SidebarMenu.tsx
 import React from 'react';
 import { NavLink, useParams } from 'react-router-dom';
+import {
+    sidebarMenuConfig,
+    getProjectSidebarMenuConfig,
+    SidebarMenuItem
+} from '../../constants/sidebarMenuConfig';
 
-interface MenuItem {
-    to: string;
-    label: string;
-    disabled?: boolean;
-}
+type SidebarMenuProps = {
+    projectName?: string;
+};
 
-const globalItems: MenuItem[] = [
-    { to: '/projects', label: 'Projects' },
-    { to: '/users', label: 'Users' },
-    { to: '/settings', label: 'Settings' }
-];
-
-const projectItems: MenuItem[] = [
-    { to: 'cases', label: 'Test Cases' },
-    { to: 'test-runs', label: 'Test Runs' },
-    { to: 'environments', label: 'Environments' },
-    { to: 'configurations', label: 'Configurations' },
-    { to: 'versions', label: 'Versions' },
-    { to: 'reports', label: 'Reports (soon)', disabled: true }
-];
-
-export default function SidebarMenu() {
-    const { projectId } = useParams();
-    const menuItems = projectId ? projectItems : globalItems;
+const SidebarMenu: React.FC<SidebarMenuProps> = ({ projectName }) => {
+    const { projectId } = useParams<{ projectId?: string }>();
+    // Отримуємо налаштування меню проекту, або null
+    const projectConfig = projectId ? getProjectSidebarMenuConfig(projectId) : null;
 
     return (
-        <div className="d-flex flex-column gap-2 p-3 border-end bg-white" style={{ width: 200, height: '100%' }}>
-            {menuItems.map(({ to, label, disabled }) => (
-                <NavLink
-                    key={to}
-                    to={projectId ? `/project/${projectId}/${to}` : to}
-                    className={({ isActive }) =>
-                        `btn btn-sm sidebar-btn app-font ${disabled ? 'disabled' : isActive ? 'active' : 'btn-outline-secondary'}`
-                    }
-                >
-                    {label}
-                </NavLink>
-            ))}
-        </div>
+        <aside className="sidebar-menu">
+            {/* === Стара секція логотипу/назви проекту === */}
+            {projectConfig && (
+                <div className="sidebar-project-section">
+                    {/* Старий код показу projectName */}
+                    {projectName && (
+                        <div className="sidebar-project-name">
+                            {projectName}
+                        </div>
+                    )}
+                    {/* === Нова секція пунктів проекту === */}
+                    <nav className="sidebar-project-menu">
+                        {projectConfig.items.map((item: SidebarMenuItem) => (
+                            <NavLink
+                                key={item.key}
+                                to={item.to}
+                                className={({ isActive }) =>
+                                    `sidebar-menu-item${isActive ? ' active' : ''}${item.disabled ? ' disabled' : ''}`
+                                }
+                                style={{ pointerEvents: item.disabled ? 'none' : 'auto' }}
+                            >
+                                <span className="sidebar-menu-icon">{item.icon}</span>
+                                <span>{item.label}</span>
+                            </NavLink>
+                        ))}
+                    </nav>
+                </div>
+            )}
+
+            {/* === Глобальна секція (Projects, Users, Roles, Settings) === */}
+            <div className="sidebar-global-section">
+                {sidebarMenuConfig.items.map((item: SidebarMenuItem) => (
+                    <NavLink
+                        key={item.key}
+                        to={item.to}
+                        className={({ isActive }) =>
+                            `sidebar-menu-item${isActive ? ' active' : ''}`
+                        }
+                    >
+                        <span className="sidebar-menu-icon">{item.icon}</span>
+                        <span>{item.label}</span>
+                    </NavLink>
+                ))}
+            </div>
+        </aside>
     );
-}
+};
+
+export default SidebarMenu;

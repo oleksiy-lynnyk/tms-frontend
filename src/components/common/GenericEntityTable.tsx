@@ -1,140 +1,127 @@
-// src/components/common/GenericEntityTable.tsx
-import React, { useState } from 'react';
-import { Button } from 'react-bootstrap';
-import TableFooter from './TableFooter';
+import React from 'react';
+import { Table } from 'react-bootstrap';
+import { ChevronUp, ChevronDown } from 'lucide-react';
+import TablePaginationFooter from './TablePaginationFooter';
 
 export interface ColumnDefinition<T> {
     key: keyof T;
     label: string;
     sortable?: boolean;
-    className?: string;
+    render?: (item: T) => React.ReactNode;
 }
 
-interface Props<T> {
-    items: T[];
+interface GenericEntityTableProps<T> {
     columns: ColumnDefinition<T>[];
-    onDelete: (id: string) => void;
-    onEdit?: (item: T) => void;
-    page: number;
+    items: T[];
+    currentPage: number;
     pageSize: number;
-    total: number;
+    totalElements: number;
     totalPages: number;
-    onPageChange: (p: number) => void;
+    pageSizeOptions?: number[];
+    sortBy?: string;
+    sortDir?: 'asc' | 'desc';
+    onSortChange?: (sortBy: string, sortDir: 'asc' | 'desc') => void;
+    onPageChange: (page: number) => void;
+    onPageSizeChange: (size: number) => void;
+    onEdit: (item: T) => void;
+    onDelete: (id: string) => void;
 }
 
-function GenericEntityTable<T extends { id?: string }>({
-                                                           items,
-                                                           columns,
-                                                           onDelete,
-                                                           onEdit,
-                                                           page,
-                                                           pageSize,
-                                                           total,
-                                                           totalPages,
-                                                           onPageChange
-                                                       }: Props<T>) {
-    const [sortKey, setSortKey] = useState<keyof T | null>(null);
-    const [sortAsc, setSortAsc] = useState(true);
-
-    const handleSort = (key: keyof T) => {
-        if (sortKey === key) {
-            setSortAsc(!sortAsc);
-        } else {
-            setSortKey(key);
-            setSortAsc(true);
-        }
-    };
-
-    const sortedItems = sortKey
-        ? [...items].sort((a, b) => {
-            const aVal = a[sortKey] ?? '';
-            const bVal = b[sortKey] ?? '';
-            return sortAsc
-                ? String(aVal).localeCompare(String(bVal))
-                : String(bVal).localeCompare(String(aVal));
-        })
-        : items;
-
-    const startItem = total > 0 ? page * pageSize + 1 : 0;
-    const endItem = Math.min((page + 1) * pageSize, total);
+export default function GenericEntityTable<T extends { id: string }>({
+                                                                         columns,
+                                                                         items,
+                                                                         currentPage,
+                                                                         pageSize,
+                                                                         totalElements,
+                                                                         totalPages,
+                                                                         pageSizeOptions = [5, 10, 20, 50],
+                                                                         sortBy,
+                                                                         sortDir,
+                                                                         onSortChange,
+                                                                         onPageChange,
+                                                                         onPageSizeChange,
+                                                                         onEdit,
+                                                                         onDelete,
+                                                                     }: GenericEntityTableProps<T>) {
+    const startItem = currentPage * pageSize;
+    const endItem = Math.min((currentPage + 1) * pageSize, totalElements);
 
     return (
-        <div className="d-flex flex-column">
-            <div className="table-wrapper">
-                <table className="table app-table table-bordered table-hover table-sm">
-                    <thead>
+        <div className="generic-table-container">
+            <Table striped bordered hover>
+                <thead>
+                <tr>
+                    {columns.map(col => (
+                        <th
+                            key={col.key as string}
+                            style={col.sortable ? { cursor: 'pointer', userSelect: 'none' } : undefined}
+                            onClick={
+                                col.sortable && onSortChange
+                                    ? () => {
+                                        if (sortBy === col.key) {
+                                            onSortChange(col.key as string, sortDir === 'asc' ? 'desc' : 'asc');
+                                        } else {
+                                            onSortChange(col.key as string, 'asc');
+                                        }
+                                    }
+                                    : undefined
+                            }
+                        >
+                            {col.label}
+                            {col.sortable && sortBy === col.key && (
+                                sortDir === 'asc' ? (
+                                    <ChevronUp size={15} style={{ marginLeft: 6, marginBottom: 2 }} />
+                                ) : (
+                                    <ChevronDown size={15} style={{ marginLeft: 6, marginBottom: 2 }} />
+                                )
+                            )}
+                        </th>
+                    ))}
+                    <th className="actions-column">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {items.length === 0 ? (
                     <tr>
-                        {columns.map(col => (
-                            <th
-                                key={String(col.key)}
-                                className={col.className}
-                                style={col.sortable ? { cursor: 'pointer' } : {}}
-                                onClick={() => col.sortable && handleSort(col.key)}
-                            >
-                                {col.label}
-                                {sortKey === col.key && (sortAsc ? ' ↑' : ' ↓')}
-                            </th>
-                        ))}
-                        <th style={{ width: 120 }}>Actions</th>
+                        <td colSpan={columns.length + 1} className="text-center no-data">
+                            <span>No data</span>
+                        </td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    {sortedItems.map((item) => (
+                ) : (
+                    items.map(item => (
                         <tr key={item.id}>
                             {columns.map(col => (
-                                <td
-                                    key={String(col.key)}
-                                    className={col.className}
-                                >
-                                    {String(item[col.key] ?? '')}
+                                <td key={col.key as string}>
+                                    {col.render ? col.render(item) : String(item[col.key])}
                                 </td>
                             ))}
-                            <td>
-                                <div className="d-flex gap-2 justify-content-end">
-                                    {onEdit && (
-                                        <Button
-                                            variant="outline-secondary"
-                                            size="sm"
-                                            onClick={() => onEdit(item)}
-                                            className="app-font"
-                                        >
-                                            Edit
-                                        </Button>
-                                    )}
-                                    <Button
-                                        variant="outline-danger"
-                                        size="sm"
-                                        onClick={() => onDelete(item.id!)}
-                                        className="app-font"
-                                    >
+                            <td className="text-center">
+                                <div className="d-flex justify-content-center gap-2">
+                                    <button className="btn btn-outline-secondary btn-sm" onClick={() => onEdit(item)}>
+                                        Edit
+                                    </button>
+                                    <button className="btn btn-outline-danger btn-sm" onClick={() => onDelete(item.id)}>
                                         Delete
-                                    </Button>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
-                    ))}
+                    ))
+                )}
+                </tbody>
+            </Table>
 
-                    {items.length === 0 && (
-                        <tr>
-                            <td colSpan={columns.length + 1} className="text-center text-muted">
-                                No items found.
-                            </td>
-                        </tr>
-                    )}
-                    </tbody>
-                </table>
-            </div>
-
-            <TableFooter
-                startItem={startItem}
-                endItem={endItem}
-                total={total}
-                currentPage={page}
+            <TablePaginationFooter
+                currentPage={currentPage}
+                pageSize={pageSize}
+                pageSizeOptions={pageSizeOptions}
+                totalElements={totalElements}
                 totalPages={totalPages}
                 onPageChange={onPageChange}
+                onPageSizeChange={onPageSizeChange}
+                startItem={startItem}
+                endItem={endItem}
             />
         </div>
     );
 }
-
-export default GenericEntityTable;

@@ -1,8 +1,8 @@
 // src/components/common/UserSelect.tsx
 import React, { useEffect, useState } from 'react';
 import { Form, Spinner } from 'react-bootstrap';
-import { getUsersPaged } from '../../api/userApi';
-import type { UserShortDTO } from '../../types';
+import { getUsersPaged } from '../../entities/users/api/userApi';
+import type { AppUserShortDTO  } from '@/entities/users/types/userTypes';
 
 interface Props {
     value: string;
@@ -10,7 +10,7 @@ interface Props {
 }
 
 const UserSelect: React.FC<Props> = ({ value, onChange }) => {
-    const [users, setUsers] = useState<UserShortDTO[]>([]);
+    const [users, setUsers] = useState<AppUserShortDTO []>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -38,7 +38,7 @@ const UserSelect: React.FC<Props> = ({ value, onChange }) => {
                 ) : (
                     users.map(user => (
                         <option key={user.id} value={user.id}>
-                            {user.name}
+                            {user.username}
                         </option>
                     ))
                 )}
