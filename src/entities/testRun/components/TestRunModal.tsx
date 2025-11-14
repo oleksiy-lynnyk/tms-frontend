@@ -3,6 +3,7 @@
 import React from 'react';
 import BaseFormModal from '../../../components/common/BaseFormModal';
 import { TestRunDTO } from '../types/testRunTypes';
+import TestRunForm from './TestRunForm';
 
 interface Props {
     show: boolean;
@@ -13,12 +14,12 @@ interface Props {
 }
 
 const TestRunModal: React.FC<Props> = ({
-                                           show,
-                                           testRun,
-                                           onClose,
-                                           onSave,
-                                           isSaving = false,      // ← розпакували isSaving із дефолтом
-                                       }) => {
+    show,
+    testRun,
+    onClose,
+    onSave,
+    isSaving = false,
+}) => {
     const [form, setForm] = React.useState<Partial<TestRunDTO>>(testRun || {});
 
     React.useEffect(() => {
@@ -40,9 +41,9 @@ const TestRunModal: React.FC<Props> = ({
             onClose={onClose}
             onSave={handleSave}
             form={form}
-            isSaving={isSaving}   // тепер це валідно
+            isSaving={isSaving}
         >
-            {/* Ваші поля форми… */}
+            <TestRunForm form={form} setForm={setForm} />
         </BaseFormModal>
     );
 };
