@@ -1,0 +1,13 @@
+/* Quick fix for test run modal form controls */
+.bs-field-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
+.bs-field-actions { flex: 1; min-width: 180px; }
+.bs-field-actions input,
+.bs-field-actions textarea,
+.bs-field-actions select,
+.bs-action-select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  margin-top: 4px;
+  display: block;
+}
