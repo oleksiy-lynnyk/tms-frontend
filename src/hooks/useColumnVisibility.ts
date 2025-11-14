@@ -1,8 +1,7 @@
 import { useState } from 'react';
-// Якщо є тип ColumnKey:
 import type { ColumnKey } from '../types';
 
-const defaultColumns: Record<ColumnKey, boolean> = {
+const defaultColumns: Partial<Record<ColumnKey, boolean>> = {
     code: true,
     title: true,
     priority: true,
@@ -13,15 +12,24 @@ const defaultColumns: Record<ColumnKey, boolean> = {
     automationStatus: true,
     component: true,
     requirement: true,
+    select: false,
+    projectId: false,
+    preconditions: false,
+    description: false,
+    steps: false,
+    expectedResult: false,
+    useCase: false,
+    suiteId: false
 };
 
 export default function useColumnVisibility() {
-    const [visibleColumns, setVisibleColumns] = useState(() => {
+    const [visibleColumns, setVisibleColumns] = useState<Record<ColumnKey, boolean>>(() => {
         const raw = localStorage.getItem('visibleColumns');
-        return raw ? JSON.parse(raw) : defaultColumns;
+        const parsed = raw ? JSON.parse(raw) : {};
+        // merge defaults with stored values; cast because ColumnKey is a type-only construct
+        return { ...(defaultColumns as Record<string, boolean>), ...(parsed as Record<string, boolean>) } as Record<ColumnKey, boolean>;
     });
 
-    // Якщо тип є — використовуй ColumnKey, якщо ні — string
     const toggleColumn = (key: ColumnKey) => {
         const updated = { ...visibleColumns, [key]: !visibleColumns[key] };
         setVisibleColumns(updated);
