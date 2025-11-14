@@ -2,7 +2,7 @@ import { useState } from 'react';
 // Якщо є тип ColumnKey:
 import type { ColumnKey } from '../types';
 
-const defaultColumns: Record<string, boolean> = {
+const defaultColumns: Record<ColumnKey, boolean> = {
     code: true,
     title: true,
     priority: true,
@@ -22,7 +22,7 @@ export default function useColumnVisibility() {
     });
 
     // Якщо тип є — використовуй ColumnKey, якщо ні — string
-    const toggleColumn = (key: string) => {
+    const toggleColumn = (key: ColumnKey) => {
         const updated = { ...visibleColumns, [key]: !visibleColumns[key] };
         setVisibleColumns(updated);
         localStorage.setItem('visibleColumns', JSON.stringify(updated));
