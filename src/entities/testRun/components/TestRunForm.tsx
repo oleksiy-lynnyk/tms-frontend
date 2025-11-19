@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import SelectCasesModal from './SelectCasesModal';
-import type {  TestCaseDTO } from 'entities/testCase/types/testCaseTypes';
-import type { TestRunDTO } from 'entities/testRun/types/testRunTypes';
-
+import { TestRunDTO } from '../types/testRunTypes';
+import { TestCaseDTO } from '../../testCase/types/testCaseTypes';
+import SelectCasesModal from '../../testCase/components/SelectCasesModal';
 
 interface Props {
     form: Partial<TestRunDTO & { testCaseIds?: string[] }>;
-    setForm: React.Dispatch<React.SetStateAction<Partial<TestRunDTO & { testCaseIds?: string[] }>>>;
+    setForm: React.Dispatch<
+        React.SetStateAction<Partial<TestRunDTO & { testCaseIds?: string[] }>>
+    >;
 }
 
 const TestRunForm: React.FC<Props> = ({ form, setForm }) => {
     const [showCasesModal, setShowCasesModal] = useState(false);
 
-    const handleChange = <K extends keyof (TestRunDTO & { testCaseIds?: string[] })>(
+    const handleChange = <
+        K extends keyof (TestRunDTO & { testCaseIds?: string[] })
+    >(
         key: K,
         value: (TestRunDTO & { testCaseIds?: string[] })[K]
     ) => {
@@ -42,12 +45,11 @@ const TestRunForm: React.FC<Props> = ({ form, setForm }) => {
                     <div className="bs-field-actions">
                         <label className="bs-field-label">Type</label>
                         <select
-                            className="bs-action-select"
-                            value={form.type || 'manual'}
+                            value={(form.type as string) || 'MANUAL'}
                             onChange={e => handleChange('type', e.target.value)}
                         >
-                            <option value="manual">Manual</option>
-                            <option value="automated">Automated</option>
+                            <option value="MANUAL">Manual</option>
+                            <option value="AUTOMATED">Automated</option>
                         </select>
                     </div>
                 </div>
@@ -69,21 +71,19 @@ const TestRunForm: React.FC<Props> = ({ form, setForm }) => {
                     <div className="bs-field-actions">
                         <label className="bs-field-label">Environment</label>
                         <select
-                            className="bs-action-select"
-                            value={form.environmentId || ''}
+                            value={(form.environmentId as string) || ''}
                             onChange={e => handleChange('environmentId', e.target.value)}
                         >
-                            {/* TODO: options */}
+                            <option value="">—</option>
                         </select>
                     </div>
                     <div className="bs-field-actions">
                         <label className="bs-field-label">Milestone</label>
                         <select
-                            className="bs-action-select"
-                            value={form.versionId || ''}
-                            onChange={e => handleChange('versionId', e.target.value)}
+                            value={(form.milestoneId as string) || ''}
+                            onChange={e => handleChange('milestoneId', e.target.value)}
                         >
-                            {/* TODO: options */}
+                            <option value="">—</option>
                         </select>
                     </div>
                 </div>
@@ -91,19 +91,22 @@ const TestRunForm: React.FC<Props> = ({ form, setForm }) => {
                     <div className="bs-field-actions">
                         <label className="bs-field-label">Default assignee</label>
                         <select
-                            className="bs-action-select"
-                            value={form.assignedTo || ''}
-                            onChange={e => handleChange('assignedTo', e.target.value)}
+                            value={(form.defaultAssigneeId as string) || ''}
+                            onChange={e => handleChange('defaultAssigneeId', e.target.value)}
                         >
-                            {/* TODO: options */}
+                            <option value="">—</option>
                         </select>
                     </div>
                     <div className="bs-field-actions">
                         <label className="bs-field-label">Tags</label>
                         <input
-                            className="bs-action-select"
-                            value={form.tags || ''}
-                            onChange={e => handleChange('tags', e.target.value)}
+                            value={form.tags?.join(', ') || ''}
+                            onChange={e =>
+                                handleChange(
+                                    'tags',
+                                    e.target.value ? e.target.value.split(',').map(s => s.trim()) : []
+                                )
+                            }
                         />
                     </div>
                 </div>
@@ -115,11 +118,10 @@ const TestRunForm: React.FC<Props> = ({ form, setForm }) => {
                     <div className="bs-field-actions">
                         <label className="bs-field-label">Configuration</label>
                         <select
-                            className="bs-action-select"
-                            value={form.configurationId || ''}
+                            value={(form.configurationId as string) || ''}
                             onChange={e => handleChange('configurationId', e.target.value)}
                         >
-                            {/* TODO: options */}
+                            <option value="">—</option>
                         </select>
                     </div>
                 </div>
@@ -128,12 +130,10 @@ const TestRunForm: React.FC<Props> = ({ form, setForm }) => {
             {/* Вибір кейсів */}
             <div className="bs-fields mb-2">
                 <div className="bs-field-row">
-                    <div className="bs-field-actions" style={{ flex: 1 }}>
+                    <div className="bs-field-actions">
                         <label className="bs-field-label">Test Cases</label>
-                        <button type="button" className="bs-btn bs-btn-outline" onClick={() => setShowCasesModal(true)}>
-                            {form.testCaseIds && form.testCaseIds.length > 0
-                                ? `${form.testCaseIds.length} selected`
-                                : 'Select cases'}
+                        <button type="button" onClick={() => setShowCasesModal(true)}>
+                            Select cases
                         </button>
                     </div>
                 </div>
