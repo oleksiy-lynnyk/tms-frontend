@@ -10,7 +10,7 @@ interface Props {
     selectedIds: string[];
     onSelect: (cases: TestCaseDTO[]) => void;
     onClose: () => void;
-    suiteId: string;
+    suiteId?: string;
 }
 
 const SelectCasesModal: React.FC<Props> = ({
