@@ -1,6 +1,6 @@
-// src/entities/environment/components/EnvironmentModal.tsx
 import React from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
+import BaseFormModal from '../../../components/common/BaseFormModal';
 import type { EnvironmentDTO } from '../types/environmentTypes';
 
 export interface EnvironmentModalProps {
@@ -13,20 +13,27 @@ export interface EnvironmentModalProps {
 }
 
 const EnvironmentModal: React.FC<EnvironmentModalProps> = ({
-                                                               show,
-                                                               environment,
-                                                               form,
-                                                               setForm,
-                                                               onClose,
-                                                               onSave,
-                                                           }) => (
-    <Modal show={show} onHide={onClose}>
-        <Modal.Header closeButton>
-            <Modal.Title>{environment ? 'Edit Environment' : 'New Environment'}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
+    show,
+    environment,
+    form,
+    setForm,
+    onClose,
+    onSave,
+}) => {
+    const handleSave = async () => {
+        await onSave(form);
+    };
+
+    return (
+        <BaseFormModal
+            title={environment ? 'Edit Environment' : 'New Environment'}
+            show={show}
+            onClose={onClose}
+            onSave={handleSave}
+            form={form}
+        >
             <Form>
-                <Form.Group controlId="envName">
+                <Form.Group controlId="envName" className="mb-3">
                     <Form.Label>Name</Form.Label>
                     <Form.Control
                         value={form.name || ''}
@@ -35,7 +42,7 @@ const EnvironmentModal: React.FC<EnvironmentModalProps> = ({
                     />
                 </Form.Group>
 
-                <Form.Group controlId="envSlug">
+                <Form.Group controlId="envSlug" className="mb-3">
                     <Form.Label>Slug</Form.Label>
                     <Form.Control
                         value={form.slug || ''}
@@ -44,7 +51,7 @@ const EnvironmentModal: React.FC<EnvironmentModalProps> = ({
                     />
                 </Form.Group>
 
-                <Form.Group controlId="envHost">
+                <Form.Group controlId="envHost" className="mb-3">
                     <Form.Label>Host</Form.Label>
                     <Form.Control
                         value={form.host || ''}
@@ -53,7 +60,7 @@ const EnvironmentModal: React.FC<EnvironmentModalProps> = ({
                     />
                 </Form.Group>
 
-                <Form.Group controlId="envPort">
+                <Form.Group controlId="envPort" className="mb-3">
                     <Form.Label>Port</Form.Label>
                     <Form.Control
                         type="number"
@@ -63,12 +70,8 @@ const EnvironmentModal: React.FC<EnvironmentModalProps> = ({
                     />
                 </Form.Group>
             </Form>
-        </Modal.Body>
-        <Modal.Footer>
-            <Button variant="secondary" onClick={onClose}>Cancel</Button>
-            <Button variant="primary" onClick={() => onSave(form)}>Save</Button>
-        </Modal.Footer>
-    </Modal>
-);
+        </BaseFormModal>
+    );
+};
 
 export default EnvironmentModal;

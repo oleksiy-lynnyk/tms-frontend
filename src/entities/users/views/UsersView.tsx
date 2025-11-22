@@ -5,6 +5,7 @@ import UserModal from '../components/UserModal';
 import DeleteModal from '../../../components/common/DeleteModal';
 import { AppUserFullDTO } from '../types/userTypes';
 import { getUsersPaged, createUser, updateUser, deleteUser } from '../api/userApi';
+import { useToast } from '../../../contexts/ToastContext';
 import type { ColumnDefinition } from '../../../types/ColumnDefinition';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
@@ -14,42 +15,54 @@ const UsersView: React.FC = () => {
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
     const [search, setSearch] = useState('');
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
     const [showModal, setShowModal] = useState(false);
     const [editItem, setEditItem] = useState<AppUserFullDTO | undefined>();
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const { showSuccess, showError } = useToast();
 
     const load = async () => {
-        const res = await getUsersPaged(search, page, pageSize);
-        setItems(res.content);
+        try {
+            const res = await getUsersPaged(search, page, pageSize);
+            setItems(res.content || []);
+            setTotalElements(res.totalElements || 0);
+            setTotalPages(res.totalPages || 1);
+        } catch (error) {
+            // Error handled by axios interceptor
+        }
     };
 
     useEffect(() => { load(); }, [page, pageSize, search]);
 
-    const filtered = items.filter(u =>
-        (u.username?.toLowerCase() ?? '').includes(search.toLowerCase()) ||
-        (u.email?.toLowerCase() ?? '').includes(search.toLowerCase()) ||
-        (u.role?.toLowerCase() ?? '').includes(search.toLowerCase())
-    );
-
-    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-
     const handleSave = async (data: Partial<AppUserFullDTO>) => {
-        if (data.id) {
-            await updateUser(data.id, data as AppUserFullDTO);
-        } else {
-            await createUser({
-                username: data.username || '',
-                email: data.email || '',
-                role: data.role || ''
-            });
+        try {
+            if (data.id) {
+                await updateUser(data.id, data as AppUserFullDTO);
+                showSuccess('User updated successfully');
+            } else {
+                await createUser({
+                    username: data.username || '',
+                    email: data.email || '',
+                    role: data.role || ''
+                });
+                showSuccess('User created successfully');
+            }
+            setShowModal(false);
+            await load();
+        } catch (error) {
+            // Error handled by axios interceptor
         }
-        setShowModal(false);
-        await load();
     };
 
     const handleDelete = async (id: string) => {
-        await deleteUser(id);
-        await load();
+        try {
+            await deleteUser(id);
+            showSuccess('User deleted successfully');
+            await load();
+        } catch (error) {
+            // Error handled by axios interceptor
+        }
     };
 
     const columns: ColumnDefinition<AppUserFullDTO>[] = [
@@ -69,10 +82,10 @@ const UsersView: React.FC = () => {
 
             <GenericEntityTable<AppUserFullDTO>
                 columns={columns}
-                items={filtered.slice(page * pageSize, (page + 1) * pageSize)}
+                items={items}
                 currentPage={page}
                 pageSize={pageSize}
-                totalElements={filtered.length}
+                totalElements={totalElements}
                 totalPages={totalPages}
                 pageSizeOptions={PAGE_SIZE_OPTIONS}
                 onPageChange={setPage}
