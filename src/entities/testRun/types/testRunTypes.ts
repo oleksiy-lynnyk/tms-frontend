@@ -21,7 +21,7 @@ export interface TestRunDTO {
     versionName?: string;
     testCaseTitles?: string[];
     type?: string;      // Додаєш
-    tags?: string;
+    tags?: string[];
 }
 export type CreateTestRunDTO = Omit<TestRunDTO, 'id' | 'startedAt' | 'completedAt'>;
 export type UpdateTestRunDTO = Partial<Omit<TestRunDTO, 'id'>>;
