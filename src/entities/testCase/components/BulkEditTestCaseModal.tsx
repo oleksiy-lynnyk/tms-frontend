@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import CreatableTagSelect, { Option } from '../../../components/common/CreatableTagSelect'
-import type { TestCase } from '@/entities/testCase/types/testCaseTypes'
+import React, { useState, useEffect } from 'react';
+import { Button, Form, Row, Col } from 'react-bootstrap';
+import BaseModal from '../../../components/common/BaseModal';
+import CreatableTagSelect, { Option } from '../../../components/common/CreatableTagSelect';
+import type { TestCase } from '@/entities/testCase/types/testCaseTypes';
 import {
     priorityOptions,
     ownerOptions,
@@ -9,8 +11,7 @@ import {
     typeOptions,
     automationOptions,
     componentOptions,
-} from '../../../constants/testcaseOptions'
-import '@/global.css'
+} from '../../../constants/testcaseOptions';
 
 interface BulkEditTestCaseModalProps {
     show: boolean
@@ -100,66 +101,60 @@ const BulkEditTestCaseModal: React.FC<BulkEditTestCaseModalProps> = ({
         onClose()
     }
 
-    if (!show) return null
+    const footer = (
+        <>
+            <Button variant="secondary" onClick={onClose}>Cancel</Button>
+            <Button variant="primary" onClick={handleSubmit}>Review and Update</Button>
+        </>
+    );
 
     return (
-        <div className="bs-modal-overlay">
-            <div className="bs-modal-content" style={{ width: 600, maxWidth: '98vw' }}>
-                <div className="bs-modal-header">
-                    <span className="bs-modal-title">Bulk Edit Test Cases ({selectedIds.size})</span>
-                    <button className="bs-close" onClick={onClose}>×</button>
-                </div>
-                <div className="bs-modal-body">
-                    <div className="bs-fields">
-                        {fieldDefs.map(({ key, label, options }) => (
-                            <div className="bs-field-row" key={key}>
-                                <div className="bs-field-label">{label}</div>
-                                <div className="bs-field-actions">
-                                    <select
-                                        className="bs-action-select"
-                                        value={actions[key]}
-                                        onChange={handleActionChange(key)}
-                                    >
-                                        <option value="keep">Keep values as is</option>
-                                        <option value="replace">Replace existing values</option>
-                                        <option value="clear">Clear field</option>
-                                    </select>
-                                    {actions[key] === 'replace' && (
-                                        key === 'tags'
-                                            ? (
-                                                <div style={{ marginTop: 8 }}>
-                                                    <CreatableTagSelect
-                                                        value={tagValues}
-                                                        onChange={setTagValues}
-                                                        placeholder={`Select or create ${label.toLowerCase()}…`}
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <select
-                                                    className="bs-value-select"
-                                                    value={values[key] || ''}
-                                                    onChange={handleValueChange(key)}
-                                                    style={{ marginTop: 8 }}
-                                                >
-                                                    <option value="">Select {label.toLowerCase()}</option>
-                                                    {options.map(opt => (
-                                                        <option key={opt} value={opt}>{opt}</option>
-                                                    ))}
-                                                </select>
-                                            )
-                                    )}
+        <BaseModal
+            title={`Bulk Edit Test Cases (${selectedIds.size})`}
+            show={show}
+            onClose={onClose}
+            footer={footer}
+            size="lg"
+        >
+            <div>
+                {fieldDefs.map(({ key, label, options }) => (
+                    <Form.Group className="mb-3" key={key}>
+                        <Form.Label className="fw-bold">{label}</Form.Label>
+                        <Form.Select
+                            value={actions[key]}
+                            onChange={handleActionChange(key)}
+                            className="mb-2"
+                        >
+                            <option value="keep">Keep values as is</option>
+                            <option value="replace">Replace existing values</option>
+                            <option value="clear">Clear field</option>
+                        </Form.Select>
+                        {actions[key] === 'replace' && (
+                            key === 'tags' ? (
+                                <div>
+                                    <CreatableTagSelect
+                                        value={tagValues}
+                                        onChange={setTagValues}
+                                        placeholder={`Select or create ${label.toLowerCase()}…`}
+                                    />
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-                <div className="bs-modal-footer">
-                    <button className="bs-btn bs-btn-outline" onClick={onClose}>Cancel</button>
-                    <button className="bs-btn bs-btn-primary" onClick={handleSubmit}>Review and Update</button>
-                </div>
+                            ) : (
+                                <Form.Select
+                                    value={values[key] || ''}
+                                    onChange={handleValueChange(key)}
+                                >
+                                    <option value="">Select {label.toLowerCase()}</option>
+                                    {options.map(opt => (
+                                        <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                </Form.Select>
+                            )
+                        )}
+                    </Form.Group>
+                ))}
             </div>
-        </div>
-    )
-}
+        </BaseModal>
+    );
+};
 
 export default BulkEditTestCaseModal

@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { Button, Table, Form } from 'react-bootstrap';
+import BaseModal from '../../../components/common/BaseModal';
 import type { TestCaseDTO } from 'entities/testCase/types/testCaseTypes';
 
 interface Props {
@@ -35,50 +37,51 @@ const SelectCasesModal: React.FC<Props> = ({ show, selectedIds, onSelect, onClos
         onSelect(cases.filter(tc => checked.includes(tc.id)));
     };
 
-    if (!show) return null;
+    const footer = (
+        <>
+            <Button variant="secondary" onClick={onClose}>Cancel</Button>
+            <Button variant="primary" onClick={handleSelect}>Select</Button>
+        </>
+    );
 
     return (
-        <div className="bs-modal-overlay">
-            <div className="bs-modal-content" style={{ minWidth: 480, maxWidth: 700 }}>
-                <div className="bs-modal-header">
-                    <div className="bs-modal-title">Select Test Cases</div>
-                    <button className="bs-close" type="button" onClick={onClose}>×</button>
-                </div>
-                <div className="bs-modal-body" style={{ maxHeight: 380, overflowY: 'auto' }}>
-                    {cases.length === 0
-                        ? <div>Loading...</div>
-                        : <table className="table table-sm">
-                            <thead>
-                            <tr>
-                                <th></th>
-                                <th>Code</th>
-                                <th>Title</th>
+        <BaseModal
+            title="Select Test Cases"
+            show={show}
+            onClose={onClose}
+            footer={footer}
+            size="lg"
+            maxHeight="380px"
+        >
+            {cases.length === 0 ? (
+                <div>Loading...</div>
+            ) : (
+                <Table size="sm">
+                    <thead>
+                        <tr>
+                            <th style={{ width: '50px' }}></th>
+                            <th>Code</th>
+                            <th>Title</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {cases.map(tc => (
+                            <tr key={tc.id}>
+                                <td>
+                                    <Form.Check
+                                        type="checkbox"
+                                        checked={checked.includes(tc.id)}
+                                        onChange={() => toggleCheck(tc.id)}
+                                    />
+                                </td>
+                                <td>{tc.code}</td>
+                                <td>{tc.title}</td>
                             </tr>
-                            </thead>
-                            <tbody>
-                            {cases.map(tc => (
-                                <tr key={tc.id}>
-                                    <td>
-                                        <input
-                                            type="checkbox"
-                                            checked={checked.includes(tc.id)}
-                                            onChange={() => toggleCheck(tc.id)}
-                                        />
-                                    </td>
-                                    <td>{tc.code}</td>
-                                    <td>{tc.title}</td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
-                    }
-                </div>
-                <div className="bs-modal-footer">
-                    <button className="bs-btn bs-btn-outline" type="button" onClick={onClose}>Cancel</button>
-                    <button className="bs-btn bs-btn-primary" type="button" onClick={handleSelect}>Select</button>
-                </div>
-            </div>
-        </div>
+                        ))}
+                    </tbody>
+                </Table>
+            )}
+        </BaseModal>
     );
 };
 
