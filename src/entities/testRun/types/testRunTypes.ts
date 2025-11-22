@@ -15,6 +15,7 @@ export interface TestRunDTO {
     configurationId?: string;
     versionId?: string;
     milestoneId?: string;
+    defaultAssigneeId?: string;
     environmentName?: string;
     configurationName?: string;
     versionName?: string;
