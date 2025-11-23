@@ -13,6 +13,16 @@ export async function fetchEnvironments(projectId: string): Promise<EnvironmentD
 }
 
 /**
+ * Fetch environments with pagination
+ */
+export async function fetchEnvironmentsPaged(projectId: string, search = '', page = 0, size = 20) {
+    const params: any = { page, size };
+    if (search) params.search = search;
+    const { data } = await api.get(`/environments/project/${projectId}`, { params });
+    return data;
+}
+
+/**
  * Create a new environment under a project
  * POST /environments
  */

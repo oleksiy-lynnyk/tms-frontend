@@ -8,6 +8,13 @@ export const getAllProjects = async (): Promise<ProjectDTO[]> => {
     return response.data;
 };
 
+export const getProjectsPaged = async (search = '', page = 0, size = 20) => {
+    const params: any = { page, size };
+    if (search) params.search = search;
+    const response = await axios.get(API_URL, { params });
+    return response.data;
+};
+
 export const getProjectById = async (id: string): Promise<ProjectDTO> => {
     const response = await axios.get<ProjectDTO>(`${API_URL}/${id}`);
     return response.data;

@@ -4,8 +4,10 @@ import type { TestCaseDTO } from '@/entities/testCase/types/testCaseTypes'
 
 
 // Отримати сторінку тест ранів по проекту
-export const fetchTestRuns = async (projectId: string, page = 0, size = 20) => {
-    const { data } = await api.get('/test-runs/project/' + projectId, { params: { page, size } });
+export const fetchTestRuns = async (projectId: string, search = '', page = 0, size = 20) => {
+    const params: any = { page, size };
+    if (search) params.search = search;
+    const { data } = await api.get('/test-runs/project/' + projectId, { params });
     return data;
 };
 

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import GenericEntityTable from '../../../components/common/GenericEntityTable';
 import PageHeader from '../../../components/common/PageHeader';
 import ConfigurationModal from '../components/ConfigurationModal';
-import { fetchConfigurations, deleteConfiguration, createConfiguration, updateConfiguration } from '../../configuration/api/configurationApi';
+import { fetchConfigurationsPaged, deleteConfiguration, createConfiguration, updateConfiguration } from '../../configuration/api/configurationApi';
 import type { ConfigurationDTO } from '../../configuration/types/configurationTypes';
 import type { ColumnDefinition } from '../../../types/ColumnDefinition';
 
@@ -15,34 +15,33 @@ const columnsConf: ColumnDefinition<ConfigurationDTO>[] = [
 ];
 
 const ConfigurationsView: React.FC<{ projectId: string }> = ({ projectId }) => {
-    const [allItems, setAllItems] = useState<ConfigurationDTO[]>([]);
+    const [items, setItems] = useState<ConfigurationDTO[]>([]);
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
-    const [total, setTotal] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
     const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editItem, setEditItem] = useState<ConfigurationDTO | undefined>();
     const [form, setForm] = useState<Partial<ConfigurationDTO>>({ projectId });
     const [isSaving, setIsSaving] = useState(false);
 
-    useEffect(() => {
-        (async () => {
-            const data = await fetchConfigurations(projectId);
-            setAllItems(data);
-            setTotal(data.length);
-            setPage(0);
-        })();
-    }, [projectId]);
+    const load = async () => {
+        try {
+            const data = await fetchConfigurationsPaged(projectId, search, page, pageSize);
+            setItems(data.content || []);
+            setTotalElements(data.totalElements || 0);
+            setTotalPages(data.totalPages || 1);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    useEffect(() => { load(); }, [projectId, page, pageSize, search]);
 
     useEffect(() => {
         setForm(editItem ?? { projectId });
     }, [editItem, projectId]);
-
-    const filtered = allItems.filter(c =>
-        c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.slug.toLowerCase().includes(search.toLowerCase())
-    );
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
     const handleSave = async () => {
         if (!form) return;
@@ -55,8 +54,7 @@ const ConfigurationsView: React.FC<{ projectId: string }> = ({ projectId }) => {
                 await createConfiguration(payload as Omit<ConfigurationDTO, 'id'>);
             }
             setShowModal(false);
-            const data = await fetchConfigurations(projectId);
-            setAllItems(data);
+            await load();
         } catch (e) {
             console.error(e);
         } finally {
@@ -75,10 +73,10 @@ const ConfigurationsView: React.FC<{ projectId: string }> = ({ projectId }) => {
 
             <GenericEntityTable<ConfigurationDTO>
                 columns={columnsConf}
-                items={filtered.slice(page * pageSize, (page + 1) * pageSize)}
+                items={items}
                 currentPage={page}
                 pageSize={pageSize}
-                totalElements={total}
+                totalElements={totalElements}
                 totalPages={totalPages}
                 pageSizeOptions={PAGE_SIZE_OPTIONS}
                 onPageChange={setPage}
@@ -86,8 +84,7 @@ const ConfigurationsView: React.FC<{ projectId: string }> = ({ projectId }) => {
                 onEdit={c => { setEditItem(c); setShowModal(true); }}
                 onDelete={async id => {
                     await deleteConfiguration(id);
-                    const data = await fetchConfigurations(projectId);
-                    setAllItems(data);
+                    await load();
                 }}
             />
 

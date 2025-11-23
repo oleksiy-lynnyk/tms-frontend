@@ -71,6 +71,12 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
         });
     };
 
+    // Скинути пагінацію при зміні suite
+    useEffect(() => {
+        setCurrentPage(0);
+        setSelectedIds(new Set());
+    }, [selectedSuiteId]);
+
     useEffect(() => {
         if (selectedSuiteId) {
             loadCases(selectedSuiteId, currentPage, pageSize, search);
@@ -150,9 +156,9 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
 
             setShowModal(false);
 
-            // Перезавантажити список тест-кейсів
+            // Перезавантажити список тест-кейсів з поточними параметрами
             if (selectedSuiteId) {
-                await loadCases(selectedSuiteId);
+                await loadCases(selectedSuiteId, currentPage, pageSize, search);
             }
         } catch (error) {
             console.error('Error saving test case:', error);
@@ -169,9 +175,9 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
         try {
             await deleteCase(id);
 
-            // Перезавантажити список
+            // Перезавантажити список з поточними параметрами
             if (selectedSuiteId) {
-                await loadCases(selectedSuiteId);
+                await loadCases(selectedSuiteId, currentPage, pageSize, search);
             }
         } catch (error) {
             console.error('Error deleting test case:', error);
@@ -213,7 +219,7 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                 }, {} as any)
             });
             setSelectedIds(new Set());
-            if (selectedSuiteId) await loadCases(selectedSuiteId);
+            if (selectedSuiteId) await loadCases(selectedSuiteId, currentPage, pageSize, search);
         } catch (error) {
             console.error('Bulk edit error:', error);
             alert('Error updating test cases');
@@ -228,7 +234,7 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                 copyToSuiteId: targetSuiteId
             });
             setSelectedIds(new Set());
-            if (selectedSuiteId) await loadCases(selectedSuiteId);
+            if (selectedSuiteId) await loadCases(selectedSuiteId, currentPage, pageSize, search);
             alert('Test cases copied successfully');
         } catch (error) {
             console.error('Bulk copy error:', error);
@@ -244,7 +250,7 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                 moveToSuiteId: targetSuiteId
             });
             setSelectedIds(new Set());
-            if (selectedSuiteId) await loadCases(selectedSuiteId);
+            if (selectedSuiteId) await loadCases(selectedSuiteId, currentPage, pageSize, search);
             alert('Test cases moved successfully');
         } catch (error) {
             console.error('Bulk move error:', error);
@@ -260,7 +266,7 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                 delete: true
             });
             setSelectedIds(new Set());
-            if (selectedSuiteId) await loadCases(selectedSuiteId);
+            if (selectedSuiteId) await loadCases(selectedSuiteId, currentPage, pageSize, search);
         } catch (error) {
             console.error('Bulk delete error:', error);
             alert('Error deleting test cases');
@@ -427,7 +433,7 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                     suiteId={selectedSuiteId}
                     onImported={() => {
                         setShowImport(false);
-                        if (selectedSuiteId) loadCases(selectedSuiteId);
+                        if (selectedSuiteId) loadCases(selectedSuiteId, currentPage, pageSize, search);
                     }}
                 />
             )}

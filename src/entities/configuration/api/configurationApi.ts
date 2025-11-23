@@ -12,6 +12,14 @@ export const fetchConfigurations = (projectId: string): Promise<ConfigurationDTO
         .get<ConfigurationDTO[]>(`/configurations/project/${projectId}`)
         .then(res => res.data);
 
+/** GET with pagination */
+export const fetchConfigurationsPaged = async (projectId: string, search = '', page = 0, size = 20) => {
+    const params: any = { page, size };
+    if (search) params.search = search;
+    const { data } = await api.get(`/configurations/project/${projectId}`, { params });
+    return data;
+};
+
 /** решта без змін */
 export const createConfiguration = (dto: CreateConfigurationDTO) =>
     api.post<ConfigurationDTO>('/configurations', dto).then(r => r.data);

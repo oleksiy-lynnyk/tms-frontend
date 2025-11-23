@@ -12,6 +12,16 @@ export async function fetchVersions(projectId: string): Promise<VersionDTO[]> {
 }
 
 /**
+ * Fetch versions with pagination
+ */
+export async function fetchVersionsPaged(projectId: string, search = '', page = 0, size = 20) {
+    const params: any = { page, size };
+    if (search) params.search = search;
+    const { data } = await api.get(`/versions/project/${projectId}`, { params });
+    return data;
+}
+
+/**
  * Create a new version under a project
  */
 export async function createVersion(payload: CreateVersionDTO): Promise<VersionDTO> {

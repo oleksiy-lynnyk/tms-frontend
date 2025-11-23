@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllProjects, createProject, updateProject, deleteProject } from '../api/projectApi';
+import { getProjectsPaged, createProject, updateProject, deleteProject } from '../api/projectApi';
 import { ProjectDTO } from '../types/projectTypes';
 import GenericEntityTable from '../../../components/common/GenericEntityTable';
 import PageHeader from '../../../components/common/PageHeader';
 import ProjectModal from '../components/ProjectModal';
 import DeleteModal from '../../../components/common/DeleteModal';
 import type { ColumnDefinition } from '../../../types/ColumnDefinition';
+
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 const ProjectsView: React.FC = () => {
     const navigate = useNavigate();
@@ -17,12 +19,18 @@ const ProjectsView: React.FC = () => {
     const [deleteId, setDeleteId] = useState<string | null>(null);
     const [form, setForm] = useState<Partial<ProjectDTO>>({});
     const [searchValue, setSearchValue] = useState("");
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[1]);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
     const loadProjects = async () => {
         setLoading(true);
         try {
-            const data = await getAllProjects();
-            setProjects(data);
+            const data = await getProjectsPaged(searchValue, page, pageSize);
+            setProjects(data.content || []);
+            setTotalElements(data.totalElements || 0);
+            setTotalPages(data.totalPages || 1);
         } catch (error) {
             console.error('Error loading projects:', error);
         } finally {
@@ -32,7 +40,7 @@ const ProjectsView: React.FC = () => {
 
     useEffect(() => {
         loadProjects();
-    }, []);
+    }, [page, pageSize, searchValue]);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -62,8 +70,8 @@ const ProjectsView: React.FC = () => {
     };
 
     const columns: ColumnDefinition<ProjectDTO>[] = [
-        { key: 'code', label: 'Code' },
-        { key: 'name', label: 'Name', render: (p) => (
+        { key: 'code', label: 'Code', sortable: true },
+        { key: 'name', label: 'Name', sortable: true, render: (p) => (
                 <button className="btn btn-link p-0" onClick={() => navigate(`/project/${p.id}`)}>
                     {p.name}
                 </button>
@@ -71,10 +79,6 @@ const ProjectsView: React.FC = () => {
         { key: 'description', label: 'Description' },
         { key: 'testCasesCount', label: 'Test Cases' }
     ];
-
-    const filteredProjects = projects.filter(p =>
-        p.name.toLowerCase().includes(searchValue.toLowerCase())
-    );
 
     return (
         <div>
@@ -87,13 +91,14 @@ const ProjectsView: React.FC = () => {
 
             <GenericEntityTable
                 columns={columns}
-                items={filteredProjects}
-                currentPage={0}
-                pageSize={filteredProjects.length}
-                totalElements={filteredProjects.length}
-                totalPages={1}
-                onPageChange={() => {}}
-                onPageSizeChange={() => {}}
+                items={projects}
+                currentPage={page}
+                pageSize={pageSize}
+                totalElements={totalElements}
+                totalPages={totalPages}
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => { setPageSize(size); setPage(0); }}
                 onSortChange={() => {}}
                 onEdit={(item) => { setForm(item); setModalOpen(true); }}
                 onDelete={(id) => setDeleteId(id)}

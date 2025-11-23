@@ -5,7 +5,7 @@ import PageHeader from '../../../components/common/PageHeader';
 import EnvironmentModal from '../components/EnvironmentModal';
 
 import type { EnvironmentDTO } from '../types/environmentTypes';
-import { fetchEnvironments, deleteEnvironment, createEnvironment, updateEnvironment } from '../api/environmentApi';
+import { fetchEnvironmentsPaged, deleteEnvironment, createEnvironment, updateEnvironment } from '../api/environmentApi';
 import type { ColumnDefinition } from '../../../types/ColumnDefinition';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50];
@@ -23,12 +23,13 @@ const EnvironmentsView: React.FC<EnvironmentsViewProps> = ({ projectId }) => {
     const [items, setItems] = useState<EnvironmentDTO[]>([]);
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
-    const [total, setTotal] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
     const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editItem, setEditItem] = useState<EnvironmentDTO | undefined>(undefined);
     const [form, setForm] = useState<Omit<EnvironmentDTO, 'id'>>({
-        projectId: projectId, // ← ДОДАНО projectId!
+        projectId: projectId,
         name: '',
         slug: '',
         description: '',
@@ -38,22 +39,16 @@ const EnvironmentsView: React.FC<EnvironmentsViewProps> = ({ projectId }) => {
 
     const load = async () => {
         try {
-            const data = await fetchEnvironments(projectId);
-            setItems(data);
-            setTotal(data.length);
-            setPage(0);
+            const data = await fetchEnvironmentsPaged(projectId, search, page, pageSize);
+            setItems(data.content || []);
+            setTotalElements(data.totalElements || 0);
+            setTotalPages(data.totalPages || 1);
         } catch (err) {
             console.error(err);
         }
     };
 
-    useEffect(() => { load(); }, [projectId]);
-
-    const filtered = items.filter(e =>
-        e.name?.toLowerCase().includes(search.toLowerCase()) ||
-        e.host?.toLowerCase().includes(search.toLowerCase())
-    );
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    useEffect(() => { load(); }, [projectId, page, pageSize, search]);
 
     const openNew = () => {
         setForm({
@@ -112,10 +107,10 @@ const EnvironmentsView: React.FC<EnvironmentsViewProps> = ({ projectId }) => {
 
             <GenericEntityTable<EnvironmentDTO>
                 columns={columnsEnv}
-                items={filtered.slice(page * pageSize, (page + 1) * pageSize)}
+                items={items}
                 currentPage={page}
                 pageSize={pageSize}
-                totalElements={total}
+                totalElements={totalElements}
                 totalPages={totalPages}
                 pageSizeOptions={PAGE_SIZE_OPTIONS}
                 onPageChange={setPage}

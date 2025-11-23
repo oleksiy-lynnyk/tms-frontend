@@ -5,7 +5,7 @@ import PageHeader from '../../../components/common/PageHeader';
 import GenericEntityTable, { ColumnDefinition } from '../../../components/common/GenericEntityTable';
 import VersionModal from '../components/VersionModal';
 import {
-    fetchVersions,
+    fetchVersionsPaged,
     createVersion,
     updateVersion,
     deleteVersion,
@@ -20,33 +20,30 @@ const columns: ColumnDefinition<VersionDTO>[] = [
 ];
 
 const VersionsView: React.FC<{ projectId: string }> = ({ projectId }) => {
-    const [allItems,      setAllItems]      = useState<VersionDTO[]>([]);
+    const [items,         setItems]         = useState<VersionDTO[]>([]);
     const [page,          setPage]          = useState<number>(0);
     const [pageSize,      setPageSize]      = useState<number>(PAGE_SIZE_OPTIONS[0]);
+    const [totalElements, setTotalElements] = useState<number>(0);
+    const [totalPages,    setTotalPages]    = useState<number>(0);
     const [editItem,      setEditItem]      = useState<VersionDTO | undefined>(undefined);
     const [form,          setForm]          = useState<Partial<VersionDTO>>({ projectId });
     const [showModal,     setShowModal]     = useState<boolean>(false);
     const [isSaving,      setIsSaving]      = useState<boolean>(false);
     const [search,        setSearch]        = useState<string>('');
 
-    // load all versions
+    // load versions with pagination
     const load = async () => {
-        const data = await fetchVersions(projectId);
-        setAllItems(data);
-        setPage(0);
+        try {
+            const data = await fetchVersionsPaged(projectId, search, page, pageSize);
+            setItems(data.content || []);
+            setTotalElements(data.totalElements || 0);
+            setTotalPages(data.totalPages || 1);
+        } catch (error) {
+            console.error('Error loading versions:', error);
+        }
     };
 
-    useEffect(() => { load(); }, [projectId]);
-
-    // filtered and paginated items
-    // filtered and paginated items
-    const filtered = allItems.filter(v =>
-        v.title.toLowerCase().includes(search.toLowerCase()) ||
-        v.slug.toLowerCase().includes(search.toLowerCase()) ||
-        (v.description ?? '').toLowerCase().includes(search.toLowerCase())
-    );
-    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-    const displayItems = filtered.slice(page * pageSize, (page + 1) * pageSize);
+    useEffect(() => { load(); }, [projectId, page, pageSize, search]);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -83,10 +80,10 @@ const VersionsView: React.FC<{ projectId: string }> = ({ projectId }) => {
 
             <GenericEntityTable<VersionDTO>
                 columns={columns}
-                items={displayItems}
+                items={items}
                 currentPage={page}
                 pageSize={pageSize}
-                totalElements={filtered.length}
+                totalElements={totalElements}
                 totalPages={totalPages}
                 pageSizeOptions={PAGE_SIZE_OPTIONS}
                 onPageChange={setPage}

@@ -19,27 +19,25 @@ const TestRunsView: React.FC<{ projectId: string }> = ({ projectId }) => {
     const [items, setItems]         = useState<TestRunDTO[]>([]);
     const [page, setPage]           = useState(0);
     const [pageSize, setPageSize]   = useState(PAGE_SIZE_OPTIONS[0]);
-    const [total, setTotal]         = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
     const [search, setSearch]       = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editRun, setEditRun]     = useState<TestRunDTO | undefined>();
     const [isSaving, setIsSaving]   = useState(false);
 
     const load = async () => {
-        const res = await fetchTestRuns(projectId, page, pageSize);
-        setItems(res.content);
-        setTotal(res.totalElements);
+        try {
+            const res = await fetchTestRuns(projectId, search, page, pageSize);
+            setItems(res.content || []);
+            setTotalElements(res.totalElements || 0);
+            setTotalPages(res.totalPages || 1);
+        } catch (error) {
+            console.error('Error loading test runs:', error);
+        }
     };
 
-    useEffect(() => { load(); }, [projectId, page, pageSize]);
-
-    const filtered = items.filter(run =>
-        (run.name ?? '').toLowerCase().includes(search.toLowerCase()) ||
-        (run.status ?? '').toLowerCase().includes(search.toLowerCase()) ||
-        (run.description ?? '').toLowerCase().includes(search.toLowerCase())
-    );
-
-    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    useEffect(() => { load(); }, [projectId, page, pageSize, search]);
 
     const handleSave = async (data: Partial<TestRunDTO>) => {
         setIsSaving(true);
@@ -77,10 +75,10 @@ const TestRunsView: React.FC<{ projectId: string }> = ({ projectId }) => {
 
             <GenericEntityTable<TestRunDTO>
                 columns={columns}
-                items={filtered.slice(page * pageSize, (page + 1) * pageSize)}
+                items={items}
                 currentPage={page}
                 pageSize={pageSize}
-                totalElements={filtered.length}
+                totalElements={totalElements}
                 totalPages={totalPages}
                 pageSizeOptions={PAGE_SIZE_OPTIONS}
                 onPageChange={setPage}
