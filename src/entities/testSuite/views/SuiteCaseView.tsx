@@ -319,18 +319,20 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                                         );
                                     })}
                                     <td className="text-center">
-                                        <button
-                                            className="btn btn-outline-secondary btn-sm"
-                                            onClick={() => handleEditClick(tc)}
-                                        >
-                                            Edit
-                                        </button>
-                                        <button
-                                            className="btn btn-outline-danger btn-sm"
-                                            onClick={() => handleDelete(tc.id)}
-                                        >
-                                            Delete
-                                        </button>
+                                        <div className="d-flex justify-content-center gap-2">
+                                            <button
+                                                className="btn btn-outline-secondary btn-sm"
+                                                onClick={() => handleEditClick(tc)}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                className="btn btn-outline-danger btn-sm"
+                                                onClick={() => handleDelete(tc.id)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))
