@@ -48,7 +48,7 @@ export default function GenericEntityTable<T extends { id: string }>({
 
     return (
         <div className="generic-table-container">
-            <Table striped bordered hover>
+            <Table>
                 <thead>
                 <tr>
                     {columns.map(col => (
@@ -70,9 +70,9 @@ export default function GenericEntityTable<T extends { id: string }>({
                             {col.label}
                             {col.sortable && sortBy === col.key && (
                                 sortDir === 'asc' ? (
-                                    <ChevronUp size={15} style={{ marginLeft: 6, marginBottom: 2 }} />
+                                    <ChevronUp size={13} style={{ marginLeft: 4, marginBottom: 1 }} />
                                 ) : (
-                                    <ChevronDown size={15} style={{ marginLeft: 6, marginBottom: 2 }} />
+                                    <ChevronDown size={13} style={{ marginLeft: 4, marginBottom: 1 }} />
                                 )
                             )}
                         </th>

@@ -52,11 +52,11 @@ const SelectCasesModal: React.FC<Props> = ({
                 {cases.length === 0 ? (
                     <div className="text-center">Loading...</div>
                 ) : (
-                    <table className="table table-sm">
+                    <table className="table">
                         <thead>
                         <tr>
-                            <th></th>
-                            <th>Code</th>
+                            <th style={{ width: '40px' }}></th>
+                            <th style={{ width: '100px' }}>Code</th>
                             <th>Title</th>
                         </tr>
                         </thead>
