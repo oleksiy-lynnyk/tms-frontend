@@ -14,6 +14,7 @@ import MoveTestCaseModal from '../../testCase/components/MoveTestCaseModal';
 import DeleteConfirmModal from '../../testCase/components/DeleteConfirmModal';
 import ImportTestCasesModal from '../../testCase/components/ImportTestCasesModal';
 import ManageColumnsModal from '../../testCase/components/ManageColumnsModal';
+import TablePaginationFooter from '../../../components/common/TablePaginationFooter';
 import type { ColumnDefinition } from '../../../types/ColumnDefinition';
 
 type Props = {
@@ -25,6 +26,12 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
     const [cases, setCases] = useState<TestCaseDTO[]>([]);
     const [loadingCases, setLoadingCases] = useState(false);
     const [search, setSearch] = useState('');
+
+    // Стан для пагінації
+    const [currentPage, setCurrentPage] = useState(0);
+    const [pageSize, setPageSize] = useState(20);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
 
     // Стан для модального вікна створення/редагування
     const [showModal, setShowModal] = useState(false);
@@ -66,17 +73,21 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
 
     useEffect(() => {
         if (selectedSuiteId) {
-            loadCases(selectedSuiteId);
+            loadCases(selectedSuiteId, currentPage, pageSize, search);
         } else {
             setCases([]);
+            setTotalElements(0);
+            setTotalPages(0);
         }
-    }, [selectedSuiteId]);
+    }, [selectedSuiteId, currentPage, pageSize, search]);
 
-    const loadCases = async (suiteId: string) => {
+    const loadCases = async (suiteId: string, page: number = 0, size: number = 20, searchTerm: string = '') => {
         setLoadingCases(true);
         try {
-            const data = await fetchCasesBySuite(suiteId);
+            const data = await fetchCasesBySuite(suiteId, page, size, searchTerm);
             setCases(data.content);
+            setTotalElements(data.totalElements);
+            setTotalPages(data.totalPages);
         } catch (error) {
             console.error('Error loading cases:', error);
         } finally {
@@ -84,9 +95,16 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
         }
     };
 
-    const filteredCases = cases.filter(tc =>
-        (tc.title?.toLowerCase() ?? '').includes(search.toLowerCase())
-    );
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        setSelectedIds(new Set()); // Скинути вибір при зміні сторінки
+    };
+
+    const handlePageSizeChange = (size: number) => {
+        setPageSize(size);
+        setCurrentPage(0); // Повернутися на першу сторінку
+        setSelectedIds(new Set()); // Скинути вибір
+    };
 
     const columns: ColumnDefinition<TestCaseDTO>[] = [
         { key: 'code', label: 'Code' },
@@ -175,12 +193,12 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
         });
     };
 
-    // Вибрати всі / зняти всі
+    // Вибрати всі / зняти всі (тільки на поточній сторінці)
     const toggleSelectAll = () => {
-        if (selectedIds.size === filteredCases.length && filteredCases.length > 0) {
+        if (selectedIds.size === cases.length && cases.length > 0) {
             setSelectedIds(new Set());
         } else {
-            setSelectedIds(new Set(filteredCases.map(tc => tc.id)));
+            setSelectedIds(new Set(cases.map(tc => tc.id)));
         }
     };
 
@@ -279,7 +297,7 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                             <th style={{ width: '40px' }}>
                                 <Form.Check
                                     type="checkbox"
-                                    checked={selectedIds.size === filteredCases.length && filteredCases.length > 0}
+                                    checked={selectedIds.size === cases.length && cases.length > 0}
                                     onChange={toggleSelectAll}
                                 />
                             </th>
@@ -290,14 +308,14 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredCases.length === 0 ? (
+                        {cases.length === 0 ? (
                             <tr>
                                 <td colSpan={columns.length + 2} className="text-center no-data">
                                     <span>No test cases</span>
                                 </td>
                             </tr>
                         ) : (
-                            filteredCases.map(tc => (
+                            cases.map(tc => (
                                 <tr key={tc.id}>
                                     <td>
                                         <Form.Check
@@ -339,6 +357,19 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                         )}
                     </tbody>
                 </Table>
+
+                {/* Футер пагінації */}
+                <TablePaginationFooter
+                    currentPage={currentPage}
+                    pageSize={pageSize}
+                    pageSizeOptions={[10, 20, 50, 100]}
+                    totalElements={totalElements}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                    onPageSizeChange={handlePageSizeChange}
+                    startItem={currentPage * pageSize}
+                    endItem={Math.min((currentPage + 1) * pageSize, totalElements)}
+                />
             </div>
 
             {/* Модальне вікно для створення/редагування тест-кейсів */}
