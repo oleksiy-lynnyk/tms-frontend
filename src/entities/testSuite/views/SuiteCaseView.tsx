@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react';
+
+import { Table, Form } from 'react-bootstrap';
 import { fetchSuitesTree } from '../../testSuite/api/testSuiteApi';
-import { fetchCasesBySuite, createCase, updateCase, deleteCase } from '../../testCase/api/testCaseApi';
+import { fetchCasesBySuite, createCase, updateCase, deleteCase, bulkUpdateCases } from '../../testCase/api/testCaseApi';
 import type { TestSuiteDTO } from '../../testSuite/types/testSuiteTypes';
 import type { TestCaseDTO } from '../../testCase/types/testCaseTypes';
-import PageHeader from '../../../components/common/PageHeader';
-import GenericEntityTable from '../../../components/common/GenericEntityTable';
 import FoldersTreeSidebar from '../../testSuite/components/FoldersTreeSidebar';
 import TestCaseModal from '../../testCase/components/TestCaseModal';
+import TestCaseToolbar from '../../testCase/components/TestCaseToolbar';
+import BulkEditTestCaseModal from '../../testCase/components/BulkEditTestCaseModal';
+import CopyTestCaseModal from '../../testCase/components/CopyTestCaseModal';
+import MoveTestCaseModal from '../../testCase/components/MoveTestCaseModal';
+import DeleteConfirmModal from '../../testCase/components/DeleteConfirmModal';
+import ImportTestCasesModal from '../../testCase/components/ImportTestCasesModal';
+import ManageColumnsModal from '../../testCase/components/ManageColumnsModal';
 import type { ColumnDefinition } from '../../../types/ColumnDefinition';
 
 type Props = {
@@ -19,9 +26,43 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
     const [loadingCases, setLoadingCases] = useState(false);
     const [search, setSearch] = useState('');
 
-    // Стан для модального вікна
+    // Стан для модального вікна створення/редагування
     const [showModal, setShowModal] = useState(false);
     const [editingCase, setEditingCase] = useState<TestCaseDTO | undefined>();
+
+    // Стан для вибору тест-кейсів (чекбокси)
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+    // Стан для модалок bulk операцій
+    const [showBulkEdit, setShowBulkEdit] = useState(false);
+    const [showCopy, setShowCopy] = useState(false);
+    const [showMove, setShowMove] = useState(false);
+    const [showBulkDelete, setShowBulkDelete] = useState(false);
+    const [showImport, setShowImport] = useState(false);
+    const [showManageColumns, setShowManageColumns] = useState(false);
+
+    // Стан для управління колонками
+    const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>({
+        code: true,
+        title: true,
+        priority: true,
+        state: true,
+        type: true,
+    });
+
+    const toggleColumn = (key: string) => {
+        setVisibleColumns(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const resetColumns = () => {
+        setVisibleColumns({
+            code: true,
+            title: true,
+            priority: true,
+            state: true,
+            type: true,
+        });
+    };
 
     useEffect(() => {
         if (selectedSuiteId) {
@@ -120,6 +161,94 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
         }
     };
 
+    // === BULK ОПЕРАЦІЇ ===
+    // Вибір/зняття вибору тест-кейса
+    const toggleSelect = (id: string) => {
+        setSelectedIds(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) {
+                newSet.delete(id);
+            } else {
+                newSet.add(id);
+            }
+            return newSet;
+        });
+    };
+
+    // Вибрати всі / зняти всі
+    const toggleSelectAll = () => {
+        if (selectedIds.size === filteredCases.length && filteredCases.length > 0) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(filteredCases.map(tc => tc.id)));
+        }
+    };
+
+    // Bulk Edit
+    const handleBulkEdit = async (updates: Partial<TestCaseDTO>) => {
+        try {
+            await bulkUpdateCases({
+                ids: Array.from(selectedIds),
+                operations: Object.entries(updates).reduce((acc, [key, value]) => {
+                    acc[key] = { type: value === undefined ? 'CLEAR' : 'SET', value: value as string };
+                    return acc;
+                }, {} as any)
+            });
+            setSelectedIds(new Set());
+            if (selectedSuiteId) await loadCases(selectedSuiteId);
+        } catch (error) {
+            console.error('Bulk edit error:', error);
+            alert('Error updating test cases');
+        }
+    };
+
+    // Bulk Copy
+    const handleBulkCopy = async (targetSuiteId: string) => {
+        try {
+            await bulkUpdateCases({
+                ids: Array.from(selectedIds),
+                copyToSuiteId: targetSuiteId
+            });
+            setSelectedIds(new Set());
+            if (selectedSuiteId) await loadCases(selectedSuiteId);
+            alert('Test cases copied successfully');
+        } catch (error) {
+            console.error('Bulk copy error:', error);
+            alert('Error copying test cases');
+        }
+    };
+
+    // Bulk Move
+    const handleBulkMove = async (targetSuiteId: string) => {
+        try {
+            await bulkUpdateCases({
+                ids: Array.from(selectedIds),
+                moveToSuiteId: targetSuiteId
+            });
+            setSelectedIds(new Set());
+            if (selectedSuiteId) await loadCases(selectedSuiteId);
+            alert('Test cases moved successfully');
+        } catch (error) {
+            console.error('Bulk move error:', error);
+            alert('Error moving test cases');
+        }
+    };
+
+    // Bulk Delete
+    const handleBulkDelete = async () => {
+        try {
+            await bulkUpdateCases({
+                ids: Array.from(selectedIds),
+                delete: true
+            });
+            setSelectedIds(new Set());
+            if (selectedSuiteId) await loadCases(selectedSuiteId);
+        } catch (error) {
+            console.error('Bulk delete error:', error);
+            alert('Error deleting test cases');
+        }
+    };
+
     return (
         <div style={{ display: 'flex', height: '100%' }}>
             <div style={{ width: 250, borderRight: '1px solid #ddd' }}>
@@ -129,26 +258,85 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                     onSelectSuite={setSelectedSuiteId}
                 />
             </div>
-            <div style={{ flex: 1, padding: 16 }}>
-                <PageHeader
-                    title="Test Cases"
-                    searchValue={search}
-                    onSearchChange={setSearch}
-                    onAdd={handleAddClick} // ← Виправлено!
+            <div className="entity-container" style={{ flex: 1, padding: 16 }}>
+                <TestCaseToolbar
+                    search={search}
+                    onSearch={setSearch}
+                    onAdd={handleAddClick}
+                    onImportCsv={() => setShowImport(true)}
+                    anySelected={selectedIds.size > 0}
+                    onBulkEdit={() => setShowBulkEdit(true)}
+                    onBulkCopy={() => setShowCopy(true)}
+                    onBulkMove={() => setShowMove(true)}
+                    onBulkDelete={() => setShowBulkDelete(true)}
+                    onShowManageColumns={() => setShowManageColumns(true)}
                 />
 
-                <GenericEntityTable
-                    columns={columns}
-                    items={filteredCases}
-                    currentPage={0}
-                    pageSize={filteredCases.length}
-                    totalElements={filteredCases.length}
-                    totalPages={1}
-                    onPageChange={() => {}}
-                    onPageSizeChange={() => {}}
-                    onEdit={handleEditClick} // ← Виправлено!
-                    onDelete={handleDelete} // ← Виправлено!
-                />
+                {/* Кастомна таблиця з чекбоксами */}
+                <Table className="table">
+                    <thead>
+                        <tr>
+                            <th style={{ width: '40px' }}>
+                                <Form.Check
+                                    type="checkbox"
+                                    checked={selectedIds.size === filteredCases.length && filteredCases.length > 0}
+                                    onChange={toggleSelectAll}
+                                />
+                            </th>
+                            {columns.map(col => (
+                                <th key={col.key as string}>{col.label}</th>
+                            ))}
+                            <th className="actions-column">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredCases.length === 0 ? (
+                            <tr>
+                                <td colSpan={columns.length + 2} className="text-center no-data">
+                                    <span>No test cases</span>
+                                </td>
+                            </tr>
+                        ) : (
+                            filteredCases.map(tc => (
+                                <tr key={tc.id}>
+                                    <td>
+                                        <Form.Check
+                                            type="checkbox"
+                                            checked={selectedIds.has(tc.id)}
+                                            onChange={() => toggleSelect(tc.id)}
+                                        />
+                                    </td>
+                                    {columns.map(col => {
+                                        const value = tc[col.key];
+                                        // Обробка масивів (steps) та інших складних типів
+                                        const displayValue = Array.isArray(value)
+                                            ? `${value.length} steps`
+                                            : (value ?? '');
+                                        return (
+                                            <td key={col.key as string}>
+                                                {displayValue}
+                                            </td>
+                                        );
+                                    })}
+                                    <td className="text-center">
+                                        <button
+                                            className="btn btn-outline-secondary btn-sm"
+                                            onClick={() => handleEditClick(tc)}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="btn btn-outline-danger btn-sm"
+                                            onClick={() => handleDelete(tc.id)}
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
+                    </tbody>
+                </Table>
             </div>
 
             {/* Модальне вікно для створення/редагування тест-кейсів */}
@@ -162,6 +350,63 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                     onSave={handleSave}
                 />
             )}
+
+            {/* Bulk Edit Modal */}
+            <BulkEditTestCaseModal
+                show={showBulkEdit}
+                onClose={() => setShowBulkEdit(false)}
+                onSave={handleBulkEdit}
+                selectedIds={selectedIds}
+            />
+
+            {/* Copy Modal */}
+            <CopyTestCaseModal
+                show={showCopy}
+                onClose={() => setShowCopy(false)}
+                onCopy={handleBulkCopy}
+                selectedCount={selectedIds.size}
+                projectId={projectId}
+            />
+
+            {/* Move Modal */}
+            <MoveTestCaseModal
+                show={showMove}
+                onClose={() => setShowMove(false)}
+                onMove={handleBulkMove}
+                selectedCount={selectedIds.size}
+                projectId={projectId}
+            />
+
+            {/* Bulk Delete Modal */}
+            <DeleteConfirmModal
+                show={showBulkDelete}
+                onClose={() => setShowBulkDelete(false)}
+                onConfirm={handleBulkDelete}
+                title="Delete Test Cases"
+                body={`Are you sure you want to delete ${selectedIds.size} test case(s)?`}
+            />
+
+            {/* Import CSV Modal */}
+            {showImport && selectedSuiteId && (
+                <ImportTestCasesModal
+                    show={showImport}
+                    onClose={() => setShowImport(false)}
+                    suiteId={selectedSuiteId}
+                    onImported={() => {
+                        setShowImport(false);
+                        if (selectedSuiteId) loadCases(selectedSuiteId);
+                    }}
+                />
+            )}
+
+            {/* Manage Columns Modal */}
+            <ManageColumnsModal
+                show={showManageColumns}
+                onClose={() => setShowManageColumns(false)}
+                columns={visibleColumns}
+                onToggle={toggleColumn}
+                onReset={resetColumns}
+            />
         </div>
     );
 };

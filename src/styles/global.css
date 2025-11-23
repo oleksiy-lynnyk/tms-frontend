@@ -331,3 +331,24 @@ table.table .no-data {
     margin-right: 8px;
     padding: 6px 20px;
 }
+
+/* ==== TestCase Toolbar ==== */
+.testcase-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+    padding: 10px 16px;
+    margin-bottom: 16px;
+}
+.testcase-toolbar .btn {
+    font-size: 13px !important;
+    border-radius: 6px !important;
+    padding: 4px 12px !important;
+}
+.testcase-toolbar .form-control {
+    font-size: 13px !important;
+    border-radius: 6px !important;
+}
