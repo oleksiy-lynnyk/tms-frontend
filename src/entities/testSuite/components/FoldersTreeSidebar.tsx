@@ -184,20 +184,35 @@ const FoldersTreeSidebar: React.FC<Props> = ({ projectId, selectedSuite, onSelec
                             onMouseLeave={() => setHoveredSuite(null)}
                             style={{
                                 paddingLeft: 8 + depth * 16,
+                                paddingRight: 8,
                                 cursor: 'pointer',
                                 userSelect: 'none',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '4px',
-                                padding: '6px 8px',
-                                borderBottom: '1px solid #f0f0f0',
-                                backgroundColor: isActive ? '#e7f3ff' : isDragOver ? '#f0f8ff' : isHovered ? '#f8f9fa' : 'transparent',
-                                transition: 'background-color 0.15s ease',
+                                gap: '8px',
+                                padding: '9px 8px',
+                                margin: '2px 10px',
+                                borderRadius: '8px',
+                                backgroundColor: isActive ? '#e5e7eb' : isDragOver ? '#f0f8ff' : isHovered ? '#f3f6fa' : 'transparent',
+                                color: isActive ? '#2563eb' : '#222222',
+                                transition: 'background 0.15s, color 0.15s',
+                                fontWeight: isActive ? 600 : 500,
                             }}
                         >
                             {/* Chevron для expand/collapse */}
                             {children ? (
-                                <span onClick={(e) => toggleExpand(suite.id, e)} style={{ cursor: 'pointer', display: 'flex' }}>
+                                <span
+                                    onClick={(e) => toggleExpand(suite.id, e)}
+                                    style={{
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        width: 16,
+                                        height: 16,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: isActive ? '#2563eb' : '#9ca3af'
+                                    }}
+                                >
                                     {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                                 </span>
                             ) : (
@@ -205,14 +220,31 @@ const FoldersTreeSidebar: React.FC<Props> = ({ projectId, selectedSuite, onSelec
                             )}
 
                             {/* Іконка папки або файлу */}
-                            {children ? (
-                                isExpanded ? <FolderOpen size={16} color="#fbbf24" /> : <Folder size={16} color="#fbbf24" />
-                            ) : (
-                                <FileText size={16} color="#94a3b8" />
-                            )}
+                            <span style={{ display: 'flex', alignItems: 'center', color: isActive ? '#2563eb' : '#9ca3af' }}>
+                                {children ? (
+                                    isExpanded ? <FolderOpen size={18} /> : <Folder size={18} />
+                                ) : (
+                                    <FileText size={18} />
+                                )}
+                            </span>
 
                             {/* Назва с'юта */}
-                            <span style={{ flex: 1 }}>{suite.name}</span>
+                            <span style={{ flex: 1, fontSize: '14px' }}>{suite.name}</span>
+
+                            {/* Лічильник тест кейсів */}
+                            {(suite.testCaseCount !== undefined && suite.testCaseCount > 0) && (
+                                <span
+                                    style={{
+                                        fontSize: '12px',
+                                        color: isActive ? '#2563eb' : '#9ca3af',
+                                        fontWeight: 500,
+                                        minWidth: '20px',
+                                        textAlign: 'right'
+                                    }}
+                                >
+                                    {suite.testCaseCount}
+                                </span>
+                            )}
                         </div>
 
                         {/* Рекурсивно показуємо дітей, якщо розгорнуто */}
