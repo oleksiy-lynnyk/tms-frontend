@@ -28,9 +28,18 @@ const ProjectsView: React.FC = () => {
         setLoading(true);
         try {
             const data = await getProjectsPaged(searchValue, page, pageSize);
-            setProjects(data.content || []);
-            setTotalElements(data.totalElements || 0);
-            setTotalPages(data.totalPages || 1);
+            // Handle both paginated response and simple array response
+            if (Array.isArray(data)) {
+                // Backend returned a simple array (not paginated)
+                setProjects(data);
+                setTotalElements(data.length);
+                setTotalPages(1);
+            } else {
+                // Backend returned paginated response
+                setProjects(data.content || []);
+                setTotalElements(data.totalElements || 0);
+                setTotalPages(data.totalPages || 1);
+            }
         } catch (error) {
             console.error('Error loading projects:', error);
         } finally {
