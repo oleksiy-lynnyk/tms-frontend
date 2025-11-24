@@ -118,28 +118,53 @@
 
 /* ==== Generic Table Container ==== */
 .generic-table-container {
-    position: relative;
-    padding-bottom: 60px;
+    display: flex;
+    flex-direction: column;
     min-height: 400px;
+}
+
+.generic-table-container .table-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(100vh - 250px);
+}
+
+.generic-table-container .table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+
+.generic-table-container .table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.generic-table-container .table-wrapper::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.generic-table-container .table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }
 
 /* ==== Пагінація ==== */
 .table-pagination-footer {
-    position: absolute;
+    position: sticky;
+    bottom: 0;
     left: 0;
     right: 0;
-    bottom: 0;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    z-index: 10;
+    z-index: 100;
     padding: 12px 32px;
     background: #eaeaea;
     border-top: 1px solid #e5e7eb;
     font-size: 14px;
     min-height: 44px;
     box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+    margin-top: auto;
 }
 .table-pagination-footer .pagination-center {
     display: flex;
@@ -195,6 +220,15 @@ table.table {
     border: none !important;
     border-collapse: separate;
     border-spacing: 0;
+}
+
+.entity-container .table thead,
+.entity-container .app-table thead,
+table.app-table thead,
+table.table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .entity-container .table thead tr,

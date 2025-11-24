@@ -48,68 +48,70 @@ export default function GenericEntityTable<T extends { id: string }>({
 
     return (
         <div className="generic-table-container">
-            <Table>
-                <thead>
-                <tr>
-                    {columns.map(col => (
-                        <th
-                            key={col.key as string}
-                            style={col.sortable ? { cursor: 'pointer', userSelect: 'none' } : undefined}
-                            onClick={
-                                col.sortable && onSortChange
-                                    ? () => {
-                                        if (sortBy === col.key) {
-                                            onSortChange(col.key as string, sortDir === 'asc' ? 'desc' : 'asc');
-                                        } else {
-                                            onSortChange(col.key as string, 'asc');
-                                        }
-                                    }
-                                    : undefined
-                            }
-                        >
-                            {col.label}
-                            {col.sortable && sortBy === col.key && (
-                                sortDir === 'asc' ? (
-                                    <ChevronUp size={13} style={{ marginLeft: 4, marginBottom: 1 }} />
-                                ) : (
-                                    <ChevronDown size={13} style={{ marginLeft: 4, marginBottom: 1 }} />
-                                )
-                            )}
-                        </th>
-                    ))}
-                    <th className="actions-column">Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {items.length === 0 ? (
+            <div className="table-wrapper">
+                <Table>
+                    <thead>
                     <tr>
-                        <td colSpan={columns.length + 1} className="text-center no-data">
-                            <span>No data</span>
-                        </td>
+                        {columns.map(col => (
+                            <th
+                                key={col.key as string}
+                                style={col.sortable ? { cursor: 'pointer', userSelect: 'none' } : undefined}
+                                onClick={
+                                    col.sortable && onSortChange
+                                        ? () => {
+                                            if (sortBy === col.key) {
+                                                onSortChange(col.key as string, sortDir === 'asc' ? 'desc' : 'asc');
+                                            } else {
+                                                onSortChange(col.key as string, 'asc');
+                                            }
+                                        }
+                                        : undefined
+                                }
+                            >
+                                {col.label}
+                                {col.sortable && sortBy === col.key && (
+                                    sortDir === 'asc' ? (
+                                        <ChevronUp size={13} style={{ marginLeft: 4, marginBottom: 1 }} />
+                                    ) : (
+                                        <ChevronDown size={13} style={{ marginLeft: 4, marginBottom: 1 }} />
+                                    )
+                                )}
+                            </th>
+                        ))}
+                        <th className="actions-column">Actions</th>
                     </tr>
-                ) : (
-                    items.map(item => (
-                        <tr key={item.id}>
-                            {columns.map(col => (
-                                <td key={col.key as string}>
-                                    {col.render ? col.render(item) : String(item[col.key])}
-                                </td>
-                            ))}
-                            <td className="text-center">
-                                <div className="d-flex justify-content-center gap-2">
-                                    <button className="btn btn-outline-secondary btn-sm" onClick={() => onEdit(item)}>
-                                        Edit
-                                    </button>
-                                    <button className="btn btn-outline-danger btn-sm" onClick={() => onDelete(item.id)}>
-                                        Delete
-                                    </button>
-                                </div>
+                    </thead>
+                    <tbody>
+                    {items.length === 0 ? (
+                        <tr>
+                            <td colSpan={columns.length + 1} className="text-center no-data">
+                                <span>No data</span>
                             </td>
                         </tr>
-                    ))
-                )}
-                </tbody>
-            </Table>
+                    ) : (
+                        items.map(item => (
+                            <tr key={item.id}>
+                                {columns.map(col => (
+                                    <td key={col.key as string}>
+                                        {col.render ? col.render(item) : String(item[col.key])}
+                                    </td>
+                                ))}
+                                <td className="text-center">
+                                    <div className="d-flex justify-content-center gap-2">
+                                        <button className="btn btn-outline-secondary btn-sm" onClick={() => onEdit(item)}>
+                                            Edit
+                                        </button>
+                                        <button className="btn btn-outline-danger btn-sm" onClick={() => onDelete(item.id)}>
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))
+                    )}
+                    </tbody>
+                </Table>
+            </div>
 
             <TablePaginationFooter
                 currentPage={currentPage}
