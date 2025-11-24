@@ -1,7 +1,7 @@
 // src/entities/testSuite/components/FoldersTreeSidebar.tsx
 import React, { useEffect, useState } from 'react';
 import { Button } from 'react-bootstrap';
-import { ChevronRight, ChevronDown, Folder, FolderOpen, FileText } from 'lucide-react';
+import { ChevronRight, ChevronDown, Folder, FolderOpen } from 'lucide-react';
 import { fetchSuitesTree, createSuite, updateSuite, deleteSuite } from '../api/testSuiteApi';
 import type { TestSuiteDTO } from '../types/testSuiteTypes';
 import SuiteModal from './SuiteModal';
@@ -219,20 +219,16 @@ const FoldersTreeSidebar: React.FC<Props> = ({ projectId, selectedSuite, onSelec
                                 <span style={{ width: 16 }} />
                             )}
 
-                            {/* Іконка папки або файлу */}
+                            {/* Іконка папки */}
                             <span style={{ display: 'flex', alignItems: 'center', color: isActive ? '#2563eb' : '#9ca3af' }}>
-                                {children ? (
-                                    isExpanded ? <FolderOpen size={18} /> : <Folder size={18} />
-                                ) : (
-                                    <FileText size={18} />
-                                )}
+                                {(children && isExpanded) ? <FolderOpen size={18} /> : <Folder size={18} />}
                             </span>
 
                             {/* Назва с'юта */}
                             <span style={{ flex: 1, fontSize: '14px' }}>{suite.name}</span>
 
                             {/* Лічильник тест кейсів */}
-                            {(suite.testCaseCount !== undefined && suite.testCaseCount > 0) && (
+                            {suite.testCaseCount !== undefined && (
                                 <span
                                     style={{
                                         fontSize: '12px',
@@ -242,7 +238,7 @@ const FoldersTreeSidebar: React.FC<Props> = ({ projectId, selectedSuite, onSelec
                                         textAlign: 'right'
                                     }}
                                 >
-                                    {suite.testCaseCount}
+                                    {suite.testCaseCount || 0}
                                 </span>
                             )}
                         </div>
