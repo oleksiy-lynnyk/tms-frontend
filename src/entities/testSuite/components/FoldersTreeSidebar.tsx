@@ -35,7 +35,6 @@ const FoldersTreeSidebar: React.FC<Props> = ({ projectId, selectedSuite, onSelec
 
     const loadSuites = async () => {
         const data = await fetchSuitesTree(projectId);
-        console.log('Loaded suites:', data); // Debug: перевірка даних з API
         setSuites(data);
     };
 
@@ -229,19 +228,17 @@ const FoldersTreeSidebar: React.FC<Props> = ({ projectId, selectedSuite, onSelec
                             <span style={{ flex: 1, fontSize: '14px' }}>{suite.name}</span>
 
                             {/* Лічильник тест кейсів */}
-                            {suite.testCaseCount !== undefined && (
-                                <span
-                                    style={{
-                                        fontSize: '12px',
-                                        color: isActive ? '#2563eb' : '#9ca3af',
-                                        fontWeight: 500,
-                                        minWidth: '20px',
-                                        textAlign: 'right'
-                                    }}
-                                >
-                                    {suite.testCaseCount || 0}
-                                </span>
-                            )}
+                            <span
+                                style={{
+                                    fontSize: '12px',
+                                    color: isActive ? '#2563eb' : '#9ca3af',
+                                    fontWeight: 500,
+                                    minWidth: '20px',
+                                    textAlign: 'right'
+                                }}
+                            >
+                                {suite.testCaseCount ?? 0}
+                            </span>
                         </div>
 
                         {/* Рекурсивно показуємо дітей, якщо розгорнуто */}
