@@ -183,14 +183,15 @@ const FoldersTreeSidebar: React.FC<Props> = ({ projectId, selectedSuite, onSelec
                             onMouseEnter={() => setHoveredSuite(suite.id)}
                             onMouseLeave={() => setHoveredSuite(null)}
                             style={{
-                                paddingLeft: 18 + depth * 20,
-                                paddingRight: 8,
                                 cursor: 'pointer',
                                 userSelect: 'none',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                                padding: '9px 8px',
+                                paddingTop: '9px',
+                                paddingBottom: '9px',
+                                paddingLeft: 18 + depth * 20,
+                                paddingRight: 8,
                                 margin: '2px 10px',
                                 borderRadius: '8px',
                                 backgroundColor: isActive ? '#e5e7eb' : isDragOver ? '#f0f8ff' : isHovered ? '#f3f6fa' : 'transparent',
