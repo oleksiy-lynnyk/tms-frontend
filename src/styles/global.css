@@ -120,13 +120,14 @@
 .generic-table-container {
     display: flex;
     flex-direction: column;
-    min-height: 400px;
+    height: calc(100vh - 180px);
+    overflow: hidden;
 }
 
 .generic-table-container .table-wrapper {
     flex: 1;
     overflow-y: auto;
-    max-height: calc(100vh - 250px);
+    overflow-x: hidden;
 }
 
 .generic-table-container .table-wrapper::-webkit-scrollbar {
@@ -149,22 +150,17 @@
 
 /* ==== Пагінація ==== */
 .table-pagination-footer {
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    flex-shrink: 0;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    z-index: 100;
     padding: 12px 32px;
     background: #eaeaea;
     border-top: 1px solid #e5e7eb;
     font-size: 14px;
-    min-height: 44px;
+    height: 60px;
     box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
-    margin-top: auto;
 }
 .table-pagination-footer .pagination-center {
     display: flex;
