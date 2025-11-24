@@ -35,6 +35,7 @@ const FoldersTreeSidebar: React.FC<Props> = ({ projectId, selectedSuite, onSelec
 
     const loadSuites = async () => {
         const data = await fetchSuitesTree(projectId);
+        console.log('Loaded suites:', data); // Debug: перевірка даних з API
         setSuites(data);
     };
 
@@ -183,7 +184,7 @@ const FoldersTreeSidebar: React.FC<Props> = ({ projectId, selectedSuite, onSelec
                             onMouseEnter={() => setHoveredSuite(suite.id)}
                             onMouseLeave={() => setHoveredSuite(null)}
                             style={{
-                                paddingLeft: 8 + depth * 16,
+                                paddingLeft: 18 + depth * 20,
                                 paddingRight: 8,
                                 cursor: 'pointer',
                                 userSelect: 'none',
