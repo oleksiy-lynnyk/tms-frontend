@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Row, Col } from 'react-bootstrap';
 import BaseFormModal from '../../../components/common/BaseFormModal';
-import type { AppUserFullDTO } from '@/entities/users/types/userTypes';
+import type { AppUserFullDTO } from '../types/userTypes';
 
 interface UserModalProps {
     show: boolean;

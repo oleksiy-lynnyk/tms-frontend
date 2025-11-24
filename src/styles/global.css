@@ -116,6 +116,13 @@
     background: transparent;
 }
 
+/* ==== Generic Table Container ==== */
+.generic-table-container {
+    position: relative;
+    padding-bottom: 60px;
+    min-height: 400px;
+}
+
 /* ==== Пагінація ==== */
 .table-pagination-footer {
     position: absolute;
@@ -148,7 +155,11 @@
     font-size: 14px;
     margin: 0 1px;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.15s, color 0.15s, opacity 0.15s;
+    min-width: 32px;
+}
+.table-pagination-footer .page-link:hover:not(:disabled):not(.active) {
+    background: #f3f6fa;
 }
 .table-pagination-footer .page-link.active,
 .table-pagination-footer .page-link:focus {
@@ -156,13 +167,18 @@
     color: #fff;
     border: 1px solid #2563eb;
 }
+.table-pagination-footer .page-link:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
 .table-pagination-footer .rows-per-page {
-    min-width: 110px;
+    min-width: 70px;
     font-size: 14px;
-    border-radius: 8px;
-    padding: 3px 10px;
-    border: 1px solid #ced4da;
+    border-radius: 6px;
+    padding: 4px 8px;
+    border: 1px solid #d1d5db;
     background: #fff;
+    cursor: pointer;
 }
 
 /* ==== Таблиці ==== */
