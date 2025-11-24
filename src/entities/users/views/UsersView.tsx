@@ -35,14 +35,18 @@ const UsersView: React.FC = () => {
 
     useEffect(() => { load(); }, [page, pageSize, search]);
 
-    const handleSave = async (data: Partial<AppUserFullDTO>) => {
+    const handleSave = async (data: Partial<AppUserFullDTO>, id?: string) => {
         try {
-            if (data.id) {
-                await updateUser(data.id, data as AppUserFullDTO);
+            if (id) {
+                await updateUser(id, {
+                    ...data,
+                    id
+                } as AppUserFullDTO);
                 showSuccess('User updated successfully');
             } else {
                 await createUser({
                     username: data.username || '',
+                    fullName: data.fullName || data.username || '',
                     email: data.email || '',
                     role: data.role || ''
                 });

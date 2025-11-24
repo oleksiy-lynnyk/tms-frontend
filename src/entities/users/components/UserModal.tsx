@@ -24,7 +24,7 @@ const UserModal: React.FC<UserModalProps> = ({ show, user, onClose, onSave }) =>
 
     useEffect(() => {
         if (show) {
-            setName(user?.username ?? '');
+            setName(user?.fullName || user?.username || '');
             setEmail(user?.email ?? '');
             setRole(user?.role ?? ROLES[1].value);
         }
@@ -35,7 +35,12 @@ const UserModal: React.FC<UserModalProps> = ({ show, user, onClose, onSave }) =>
 
         setIsSaving(true);
         try {
-            await onSave({ username: name.trim(), email: email.trim(), role }, user?.id);
+            await onSave({
+                username: name.trim(),
+                fullName: name.trim(),
+                email: email.trim(),
+                role
+            }, user?.id);
         } finally {
             setIsSaving(false);
         }

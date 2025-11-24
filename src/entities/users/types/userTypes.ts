@@ -4,6 +4,7 @@ export interface AppUserShortDTO {
     username: string; // fullName або username
 }
 export interface AppUserFullDTO extends AppUserShortDTO {
+    fullName?: string;
     email?: string;
     role?: string;
 }
