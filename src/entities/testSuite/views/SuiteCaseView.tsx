@@ -274,15 +274,15 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
     };
 
     return (
-        <div style={{ display: 'flex', height: '100%' }}>
-            <div style={{ width: 250, borderRight: '1px solid #ddd' }}>
+        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+            <div style={{ width: 250, borderRight: '1px solid #ddd', display: 'flex', flexDirection: 'column' }}>
                 <FoldersTreeSidebar
                     projectId={projectId}
                     selectedSuite={selectedSuiteId}
                     onSelectSuite={setSelectedSuiteId}
                 />
             </div>
-            <div className="entity-container" style={{ flex: 1, padding: 16 }}>
+            <div className="entity-container" style={{ flex: 1, padding: 16, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <TestCaseToolbar
                     search={search}
                     onSearch={setSearch}
@@ -296,86 +296,91 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                     onShowManageColumns={() => setShowManageColumns(true)}
                 />
 
-                {/* Кастомна таблиця з чекбоксами */}
-                <Table className="table">
-                    <thead>
-                        <tr>
-                            <th style={{ width: '40px' }}>
-                                <Form.Check
-                                    type="checkbox"
-                                    checked={selectedIds.size === cases.length && cases.length > 0}
-                                    onChange={toggleSelectAll}
-                                />
-                            </th>
-                            {columns.map(col => (
-                                <th key={col.key as string}>{col.label}</th>
-                            ))}
-                            <th className="actions-column">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {cases.length === 0 ? (
-                            <tr>
-                                <td colSpan={columns.length + 2} className="text-center no-data">
-                                    <span>No test cases</span>
-                                </td>
-                            </tr>
-                        ) : (
-                            cases.map(tc => (
-                                <tr key={tc.id}>
-                                    <td>
+                {/* Wrapper для таблиці та пагінації */}
+                <div className="generic-table-container">
+                    <div className="table-wrapper">
+                        {/* Кастомна таблиця з чекбоксами */}
+                        <Table className="table">
+                            <thead>
+                                <tr>
+                                    <th style={{ width: '40px' }}>
                                         <Form.Check
                                             type="checkbox"
-                                            checked={selectedIds.has(tc.id)}
-                                            onChange={() => toggleSelect(tc.id)}
+                                            checked={selectedIds.size === cases.length && cases.length > 0}
+                                            onChange={toggleSelectAll}
                                         />
-                                    </td>
-                                    {columns.map(col => {
-                                        const value = tc[col.key];
-                                        // Обробка масивів (steps) та інших складних типів
-                                        const displayValue = Array.isArray(value)
-                                            ? `${value.length} steps`
-                                            : (value ?? '');
-                                        return (
-                                            <td key={col.key as string}>
-                                                {displayValue}
-                                            </td>
-                                        );
-                                    })}
-                                    <td className="text-center">
-                                        <div className="d-flex justify-content-center gap-2">
-                                            <button
-                                                className="btn btn-outline-secondary btn-sm"
-                                                onClick={() => handleEditClick(tc)}
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                className="btn btn-outline-danger btn-sm"
-                                                onClick={() => handleDelete(tc.id)}
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </td>
+                                    </th>
+                                    {columns.map(col => (
+                                        <th key={col.key as string}>{col.label}</th>
+                                    ))}
+                                    <th className="actions-column">Actions</th>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </Table>
+                            </thead>
+                            <tbody>
+                                {cases.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={columns.length + 2} className="text-center no-data">
+                                            <span>No test cases</span>
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    cases.map(tc => (
+                                        <tr key={tc.id}>
+                                            <td>
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    checked={selectedIds.has(tc.id)}
+                                                    onChange={() => toggleSelect(tc.id)}
+                                                />
+                                            </td>
+                                            {columns.map(col => {
+                                                const value = tc[col.key];
+                                                // Обробка масивів (steps) та інших складних типів
+                                                const displayValue = Array.isArray(value)
+                                                    ? `${value.length} steps`
+                                                    : (value ?? '');
+                                                return (
+                                                    <td key={col.key as string}>
+                                                        {displayValue}
+                                                    </td>
+                                                );
+                                            })}
+                                            <td className="text-center">
+                                                <div className="d-flex justify-content-center gap-2">
+                                                    <button
+                                                        className="btn btn-outline-secondary btn-sm"
+                                                        onClick={() => handleEditClick(tc)}
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        className="btn btn-outline-danger btn-sm"
+                                                        onClick={() => handleDelete(tc.id)}
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </Table>
+                    </div>
 
-                {/* Футер пагінації */}
-                <TablePaginationFooter
-                    currentPage={currentPage}
-                    pageSize={pageSize}
-                    pageSizeOptions={[10, 20, 50, 100]}
-                    totalElements={totalElements}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                    onPageSizeChange={handlePageSizeChange}
-                    startItem={currentPage * pageSize}
-                    endItem={Math.min((currentPage + 1) * pageSize, totalElements)}
-                />
+                    {/* Футер пагінації */}
+                    <TablePaginationFooter
+                        currentPage={currentPage}
+                        pageSize={pageSize}
+                        pageSizeOptions={[10, 20, 50, 100]}
+                        totalElements={totalElements}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                        onPageSizeChange={handlePageSizeChange}
+                        startItem={currentPage * pageSize}
+                        endItem={Math.min((currentPage + 1) * pageSize, totalElements)}
+                    />
+                </div>
             </div>
 
             {/* Модальне вікно для створення/редагування тест-кейсів */}
