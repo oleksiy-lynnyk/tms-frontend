@@ -312,7 +312,7 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                                             onChange={toggleSelectAll}
                                         />
                                     </th>
-                                    {columns.map(col => (
+                                    {columns.filter(col => visibleColumns[col.key as string]).map(col => (
                                         <th key={col.key as string}>{col.label}</th>
                                     ))}
                                     <th className="actions-column">Actions</th>
@@ -321,7 +321,7 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                             <tbody>
                                 {cases.length === 0 ? (
                                     <tr>
-                                        <td colSpan={columns.length + 2} className="text-center no-data">
+                                        <td colSpan={columns.filter(col => visibleColumns[col.key as string]).length + 2} className="text-center no-data">
                                             <span>No test cases</span>
                                         </td>
                                     </tr>
@@ -335,7 +335,7 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                                                     onChange={() => toggleSelect(tc.id)}
                                                 />
                                             </td>
-                                            {columns.map(col => {
+                                            {columns.filter(col => visibleColumns[col.key as string]).map(col => {
                                                 const value = tc[col.key];
                                                 // Обробка масивів (steps) та інших складних типів
                                                 const displayValue = Array.isArray(value)
