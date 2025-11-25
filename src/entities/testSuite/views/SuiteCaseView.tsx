@@ -282,19 +282,21 @@ const SuiteCaseView: React.FC<Props> = ({ projectId }) => {
                     onSelectSuite={setSelectedSuiteId}
                 />
             </div>
-            <div className="entity-container" style={{ flex: 1, padding: 16, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <TestCaseToolbar
-                    search={search}
-                    onSearch={setSearch}
-                    onAdd={handleAddClick}
-                    onImportCsv={() => setShowImport(true)}
-                    anySelected={selectedIds.size > 0}
-                    onBulkEdit={() => setShowBulkEdit(true)}
-                    onBulkCopy={() => setShowCopy(true)}
-                    onBulkMove={() => setShowMove(true)}
-                    onBulkDelete={() => setShowBulkDelete(true)}
-                    onShowManageColumns={() => setShowManageColumns(true)}
-                />
+            <div className="entity-container" style={{ flex: 1 }}>
+                <div style={{ padding: 16, flexShrink: 0 }}>
+                    <TestCaseToolbar
+                        search={search}
+                        onSearch={setSearch}
+                        onAdd={handleAddClick}
+                        onImportCsv={() => setShowImport(true)}
+                        anySelected={selectedIds.size > 0}
+                        onBulkEdit={() => setShowBulkEdit(true)}
+                        onBulkCopy={() => setShowCopy(true)}
+                        onBulkMove={() => setShowMove(true)}
+                        onBulkDelete={() => setShowBulkDelete(true)}
+                        onShowManageColumns={() => setShowManageColumns(true)}
+                    />
+                </div>
 
                 {/* Wrapper для таблиці та пагінації */}
                 <div className="generic-table-container">
