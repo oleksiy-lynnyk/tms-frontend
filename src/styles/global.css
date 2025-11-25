@@ -210,9 +210,6 @@ table.app-table,
 table.table {
     width: 100%;
     margin-bottom: 0 !important;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px 0 rgba(28,28,35,0.05);
-    overflow: hidden;
     border: none !important;
     border-collapse: separate;
     border-spacing: 0;
@@ -225,6 +222,7 @@ table.table thead {
     position: sticky;
     top: 0;
     z-index: 10;
+    background: #f4f6fa;
 }
 
 .entity-container .table thead tr,
@@ -233,6 +231,13 @@ table.app-table thead tr,
 table.table thead tr {
     background: #f4f6fa !important;
     border-bottom: 1px solid #e5e7eb !important;
+}
+
+.entity-container .table thead th,
+.entity-container .app-table thead th,
+table.app-table thead th,
+table.table thead th {
+    background: #f4f6fa !important;
 }
 
 .entity-container .table th,
